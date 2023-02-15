@@ -6,6 +6,7 @@
     	<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
 {% endblock %}
 {% block content %}
+<div class="body">
 
 <div>
 	<div class="search-wrapper">
@@ -18,11 +19,13 @@
 <div id="map" style="width: 100%; height: 80vh"></div>
 <div class="match"></div>
 <div class="results"></div>
+</div>
+
 <script>
 	const searchInput = document.querySelector(".destination");
 	const locations = document.querySelector(".locations");
 	const locationItems = document.querySelectorAll(".location");
-	let marker, circle, zoomed, dMarker, dCircle, endLon, endLat, startLat, startLon, accuracy, polyline
+	let marker, circle, zoomed, dMarker, endLon, endLat, startLat, startLon, accuracy, polyline
 	let currenRroute, currentDest, current_location;
 	// Initializes map
 	const map = L.map('map', {
@@ -68,7 +71,6 @@
     				
     				if (dMarker) {
     					map.removeLayer(dMarker);
-        				map.removeLayer(dCircle);
     				}
     				
     				if (polyline) {
@@ -79,7 +81,6 @@
     				marker = L.marker([startLat, startLon]).addTo(map);
     				circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
     				dMarker = L.marker([endLat, endLon]).addTo(map);
-        			dCircle = L.circle([endLat, endLon], { radius: accuracy }).addTo(map);
         			polyline = L.polyline(latLngs, {color: 'red'}).addTo(map);
         			
         			// Insert the find match button
@@ -87,6 +88,7 @@
         			matchEl.innerHTML = `<button class="match-btn">Find Match</button>`
         			const matchBtn = document.querySelector(".match-btn");
         			matchBtn.addEventListener("click", (e) => {
+        				matchBtn.innerHTML = `<div class='spinner'></div>`
         				fetch("/match/passenger/", {
         					method: "POST",
         					headers: {
@@ -114,15 +116,23 @@
         					data = data.result;
         					if (data.length < 1) {
         						resultEl.innerHTML = "<div>No match found!</div>";
+        						matchBtn.innerHTML = `Find Match`;
         						return;
         					}
         					
         					for (let i = 0; i < data.length; i++) {
-        						resultEl.innerHTML = `<div>${data[i].username} ${data[i].destination} ${data[i].match_rate}</div>`
+        						resultEl.innerHTML = `<div class="match-wrapper">
+        									<div><span>Username: </span>${data[i].username}</div>
+        									<div><span>Destination:</span> ${data[i].destination} </div>
+        									<div><span>Origin: </span>${data[i].origin} </div>
+        									<div><span>Match rate:</span> ${data[i].match_rate}%</div>
+        								</div>`
         					}
+        					matchBtn.innerHTML = `Find Match`;
         				})
         				.catch(error => {
         					console.log(error);
+        					matchBtn.innerHTML = `Find Match`;
         				})
         			})
         			
@@ -234,6 +244,7 @@
 					endLat = e.target.getAttribute("data-lat");
 					locations.style.display = "none";
 					currentDest = e.target.getAttribute("data-dest");
+					searchInput.value = currentDest;
 					drawRoute(startLat, startLon, endLat, endLon);
 				})
 	})

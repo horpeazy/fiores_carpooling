@@ -47,7 +47,7 @@ def trip_detail(request, trip_id):
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
-					'match_rate': match_rate
+					'match_rate': match_rate * 100
 				})
 			
 	return render(request, "carpooling/trip_detail.html", {"trip": trip, "matches": matches})
@@ -83,7 +83,7 @@ def match_driver(request):
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
-					'match_rate': match_rate
+					'match_rate': match_rate * 100
 				})
 		return JsonResponse({"result": matches}, status=200)
 	else:
@@ -120,7 +120,7 @@ def match_passenger(request):
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
-					'match_rate': match_rate
+					'match_rate': match_rate * 100
 				})
 		return JsonResponse({"result": matches}, status=200)
 	else:

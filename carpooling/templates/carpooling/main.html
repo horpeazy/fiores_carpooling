@@ -18,15 +18,16 @@
         </div>
         {% if request.user.is_authenticated %}
         <div class="nav-opt">
-          <a href="/trips">Trips</a>
+          <a href="/trips">My Trips</a>
           <a href="/logout">Logout</a>
         </div>
         {% endif %}
     </nav>
-    <div class="body">
+    <div>
   	{% block content %}
 	{% endblock %}  
     </div>
+    
 
 
     <footer id="footer">

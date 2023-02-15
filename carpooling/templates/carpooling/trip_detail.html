@@ -4,10 +4,26 @@
 	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
 	<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
     	<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+    	<style>
+    		p span {
+    			display: inline-block;
+    			width: 120px;
+    		}
+    	</style>
 {% endblock %}
 {% block content %}
+<div class="body">
 <div style="margin-bottom: 100px;">
 <div id="map" style="width: 100%; height: 80vh"></div>
+<div style="margin-top: 40px;">
+<h2>Trip Details</h2>
+<p><span>Date: </span>{{ trip.created_at }}</p>
+<p><span>Destination: </span>{{ trip.destination }}</p>
+<p><span>From:</span> {{ trip.origin }}</p>
+<p><span>Driver's name: </span>{{ trip.driver }}</p>
+<p><span>Role:</span> {{ trip.role }}</p>
+<p><span>Status: </span>{{ trip.status|upper }}</p>
+</div>
 {% if matches %}
 <div class="results" style="margin-bottom: 100px;">
 	{% for match in matches %}
@@ -23,6 +39,8 @@
 </div>
 {% endif %}
 </div>
+</div>
+
 <script>
 	let marker, dMarker
 	let currenRroute, currentDest, current_location;
