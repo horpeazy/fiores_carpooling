@@ -70,11 +70,11 @@ def match(route1, route2):
     return matches / len(shorter_route)
 
 
-def match_routes(route1, route2, threshold=0.02):
+def match_routes(route1, route2, threshold=0.05):
     """
     This function calculates the match rate between two routes.
     The match rate is defined as the number of points in the shorter
-    route that are within a    certain distance threshold from the points
+    route that are within a  certain distance threshold from the points
     in the longer route. The haversine distance is used to calculate the
     distance between two points.
     
@@ -84,7 +84,10 @@ def match_routes(route1, route2, threshold=0.02):
     route2 (list of tuples): A list of tuples, where each tuple contains the latitude
     			     and longitude of a point in the second route.
     threshold (float): The maximum distance (in kilometers) that two points can be
-    		       apart to be considered a match. The default value is 0.02 km.
+    		       apart to be considered a match. The default value is 0.05 km.
+    		       Ideally, the threshold should be selected so that it's less than
+    		       the avg haversine distance between successive points in a route and big
+    		       enough to account for slight variations in the point coordinates(errors)
     
     Returns:
     float: The match rate between the two routes, expressed as a decimal value between 0 and 1.
@@ -95,11 +98,13 @@ def match_routes(route1, route2, threshold=0.02):
     >>> match_routes(route1, route2)
     0.6666666666666666
     """
+    shorter_route = route1 if len(route1) <= len(route2) else route2
+    longer_route = route2 if len(route1) <= len(route2) else route1
     match = 0
-    for i, (lat1, lon1) in enumerate(route1):
-        for j, (lat2, lon2) in enumerate(route2):
+    for i, (lat1, lon1) in enumerate(shorter_route):
+        for j, (lat2, lon2) in enumerate(longer_route):
             if haversine_distance(lat1, lon1, lat2, lon2) <= threshold:
                 match += 1
                 break
-    match_rate = match / len(route1) if len(route1) < len(route2) else match / len(route2)
+    match_rate = match / len(shorter_route)
     return match_rate

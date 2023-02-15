@@ -6,7 +6,7 @@ from django.http import JsonResponse
 import json
 import ast
 from .models import Trip
-from .utils import match
+from .utils import match, match_routes
 
 # Create your views here.
 
@@ -39,14 +39,16 @@ def trip_detail(request, trip_id):
 			trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.ACTIVE)
 		else:
 			trips = Trip.objects.filter(role=Trip.DRIVER, status=Trip.ACTIVE)
-		for trip in trips:
-			trip_route = ast.literal_eval(trip.route)
-			match_rate = match(route, trip_route)
+		for mtrip in trips:
+			trip_route = ast.literal_eval(mtrip.route)
+			match_rate = match(trip.route, trip_route)
 			if  match_rate >= 0.6:
 				matches.append({
-					'username': trip.user.username,
-					'destination': trip.destination,
-					'origin': trip.origin,
+					'username': mtrip.user.username,
+					'destination': mtrip.destination,
+					'origin': mtrip.origin,
+					'origin_lon': mtrip.origin_lon,
+					'origin_lat': mtrip.origin_lat,
 					'match_rate': match_rate * 100
 				})
 			
@@ -77,12 +79,15 @@ def match_driver(request):
 		matches = []
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
-			match_rate = match(route, trip_route)
+			match_rate = match_routes(route, trip_route)
+			print(match_rate)
 			if  match_rate >= 0.6:
 				matches.append({
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
+					'origin_lon': trip.origin_lon,
+					'origin_lat': trip.origin_lat,
 					'match_rate': match_rate * 100
 				})
 		return JsonResponse({"result": matches}, status=200)
@@ -120,6 +125,8 @@ def match_passenger(request):
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
+					'origin_lon': trip.origin_lon,
+					'origin_lat': trip.origin_lat,
 					'match_rate': match_rate * 100
 				})
 		return JsonResponse({"result": matches}, status=200)

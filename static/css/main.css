@@ -138,17 +138,6 @@ h4 {
 	background-blend-mode: multiply;
 }
 
-
-.btn {
-	width: 80px;
-	margin: 10px;
-	padding: 15px;
-	background-color: #142580;
-	color: white;
-	border: none;
-	z-index: 999;
-}
-
 .user {
     cursor: pointer;
 }
@@ -342,6 +331,7 @@ form button {
 	font-size: 16px;
 	cursor: pointer;
 	font-weight: bold;
+	border-radius: 25px;
 }
 
 .results {
@@ -360,9 +350,9 @@ form button {
 }
 
 .match-wrapper {
-	border: 1px solid grey;
 	padding: 15px;
 	border-radius: 5px;
+	box-shadow: 0px 7px 16px 0px rgb(0 0 0 / 29%);
 }
 
 .match-wrapper span {

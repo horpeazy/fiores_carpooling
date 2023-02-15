@@ -2,23 +2,21 @@
 {% block head %}
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
 	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
-	<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
-    	<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
 {% endblock %}
 {% block content %}
 <div class="body">
 
-<div>
-	<div class="search-wrapper">
-		<input type="search" name="destination" class="destination"/>
-		<ul class="locations">
-		<ul>
+	<div>
+		<div class="search-wrapper">
+			<input type="search" name="destination" class="destination"/>
+			<ul class="locations">
+			<ul>
+		</div>
 	</div>
-</div>
 
-<div id="map" style="width: 100%; height: 80vh"></div>
-<div class="match"></div>
-<div class="results"></div>
+	<div id="map" style="width: 100%; height: 80vh"></div>
+	<div class="match"></div>
+	<div class="results"></div>
 </div>
 
 <script>
@@ -27,6 +25,7 @@
 	const locationItems = document.querySelectorAll(".location");
 	let marker, circle, zoomed, dMarker, endLon, endLat, startLat, startLon, accuracy, polyline
 	let currenRroute, currentDest, current_location;
+
 	// Initializes map
 	const map = L.map('map', {
     		zoom: 16
@@ -40,12 +39,7 @@
     		maxZoom: 19,
     		attribution: '© OpenStreetMap'
 	}).addTo(map); 
-// L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-//    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org///licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-//    maxZoom: 18,
-//    id: 'mapbox.streets',
-//    accessToken: 'your_access_token_here'
-//}).addTo(map);
+	
 	function drawRoute(startLat, startLon, endLat, endLon) {
 		fetch('http://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson')
     			.then(function (response) {
@@ -64,7 +58,6 @@
 
         			// Add the route to the map
         			if (marker) {
-        				console.log("removing marker")
 					map.removeLayer(marker);
         				map.removeLayer(circle);
     				}
@@ -116,7 +109,7 @@
         					data = data.result;
         					if (data.length < 1) {
         						resultEl.innerHTML = "<div>No match found!</div>";
-        						matchBtn.innerHTML = `Find Match`;
+        						matchBtn.style.display = 'none';
         						return;
         					}
         					
@@ -128,7 +121,7 @@
         									<div><span>Match rate:</span> ${data[i].match_rate}%</div>
         								</div>`
         					}
-        					matchBtn.innerHTML = `Find Match`;
+        					matchBtn.style.display = 'none';
         				})
         				.catch(error => {
         					console.log(error);
@@ -144,12 +137,12 @@
 		lat2 = parseFloat(lat2);
 		lon1 = parseFloat(lon1);
 		lon2 = parseFloat(lon2);
-  		var R = 6371; // radius of the earth in km
-  		var dLat = (lat2 - lat1) * (Math.PI / 180);
-  		var dLon = (lon2 - lon1) * (Math.PI / 180);
- 		var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
-  		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  		var d = R * c;
+  		const R = 6371; // radius of the earth in km
+  		const dLat = (lat2 - lat1) * (Math.PI / 180);
+  		const dLon = (lon2 - lon1) * (Math.PI / 180);
+ 		const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+  		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  		const d = R * c;
   		return d;
 	}
 
@@ -186,7 +179,6 @@
     		
     		if (dMarker) {
     			map.removeLayer(dMarker);
-        		map.removeLayer(dCircle);
     		}
 
 

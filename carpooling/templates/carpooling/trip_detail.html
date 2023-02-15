@@ -2,8 +2,6 @@
 {% block head %}
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
 	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
-	<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
-    	<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
     	<style>
     		p span {
     			display: inline-block;
@@ -13,42 +11,59 @@
 {% endblock %}
 {% block content %}
 <div class="body">
-<div style="margin-bottom: 100px;">
-<div id="map" style="width: 100%; height: 80vh"></div>
-<div style="margin-top: 40px;">
-<h2>Trip Details</h2>
-<p><span>Date: </span>{{ trip.created_at }}</p>
-<p><span>Destination: </span>{{ trip.destination }}</p>
-<p><span>From:</span> {{ trip.origin }}</p>
-<p><span>Driver's name: </span>{{ trip.driver }}</p>
-<p><span>Role:</span> {{ trip.role }}</p>
-<p><span>Status: </span>{{ trip.status|upper }}</p>
-</div>
-{% if matches %}
-<div class="results" style="margin-bottom: 100px;">
-	{% for match in matches %}
-		<div>
-			<h2> {{ match.destination }} </h2>
-			<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
-				<div>From: {{ match.origin }} </div> 
-				<div>Username: {{ match.username }} </div>
-				<div>Match rate: {{ match.matchrate }}</div>
-			</div>
+	<div style="margin-bottom: 100px;">
+	<div id="map" style="width: 100%; height: 80vh"></div>
+	<div style="margin-top: 40px;">
+		<h2>Trip Details</h2>
+		<p>
+			<span>Date: </span>
+			{{ trip.created_at }}
+		</p>
+		<p>
+			<span>Destination: </span>
+			{{ trip.destination }}
+		</p>
+		<p>
+			<span>From:</span>
+			{{ trip.origin }}
+		</p>
+		<p>
+			<span>Driver's name: </span>
+			{{ trip.driver }}
+		</p>
+		<p>
+			<span>Role:</span>
+			{{ trip.role }}
+		</p>
+		<p>
+			<span>Status: </span>
+			{{ trip.status|upper }}
+		</p>
+	</div>
+	{% if matches %}
+		<div class="results" style="margin-bottom: 100px;">
+			{% for match in matches %}
+				<div>
+					<h2> {{ match.destination }} </h2>
+					<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+						<p>From: {{ match.origin }} </p> 
+						<p>Username: {{ match.username }} </p>
+						<p>Match rate: {{ match.matchrate }}</p>
+					</div>
+				</div>
+			{% endfor %}
 		</div>
-	{% endfor %}
-</div>
-{% endif %}
-</div>
+	{% endif %}
+	</div>
 </div>
 
 <script>
-	let marker, dMarker
+	let marker, circle, dMarker, zoomed;
 	let currenRroute, currentDest, current_location;
 	const startLat = '{{ trip.origin_lat }}'
 	const startLon = '{{ trip.origin_lon }}'
 	const endLat = '{{ trip.destination_lat }}'
 	const endLon = '{{ trip.destination_lon }}'
-	console.log(startLat, startLon, endLat, endLon);
 
 	// Initializes map
 	const map = L.map('map', {
@@ -62,11 +77,7 @@
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     		maxZoom: 19,
     		attribution: '© OpenStreetMap'
-	}).addTo(map); 
-
-	marker = L.marker([startLat, startLon]).addTo(map);
-
-    	map.setView([startLat, startLon]);
+	}).addTo(map);
 	
 	// Declare function to draw map
 	function drawRoute(startLat, startLon, endLat, endLon) {
@@ -92,16 +103,51 @@
     		.catch(error => {
     			console.log(error);
     		})
-	}
-
-    	drawRoute(startLat, startLon, endLat, endLon);
-// L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-//    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org///licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-//    maxZoom: 18,
-//    id: 'mapbox.streets',
-//    accessToken: 'your_access_token_here'
-//}).addTo(map);
+	} 
 	
+	if (trip.status === 'active') {
+		navigator.geolocation.watchPosition(success, error);
+
+		function success(pos) {
+
+			const startLat = pos.coords.latitude;
+			const startLon = pos.coords.longitude;
+			const accuracy = pos.coords.accuracy;
+			
+			// Remove existing marker and circle
+			if (marker) {
+				map.removeLayer(marker);
+	        		map.removeLayer(circle);
+	    		}
+	    		
+	    		if (dMarker) {
+	    			map.removeLayer(dMarker);
+	    		}
+	
+	
+	    		marker = L.marker([startLat, startLon]).addTo(map);
+	    		circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
+	
+	    		if (!zoomed) {
+	        		zoomed = map.fitBounds(circle.getBounds()); 
+	    		}
+	
+	    		map.setView([startLat, startLon]);
+			drawRoute(startLat, startLon, endLat, endLon);
+		}
+		
+		function error(err) {
+    			if (err.code === 1) {
+        			alert("Please allow geolocation access");
+    			} else {
+        			alert("Cannot get current location");
+   			}
+		}
+	} else {
+		marker = L.marker([startLat, startLon]).addTo(map);
+    		map.setView([startLat, startLon]);
+    		drawRoute(startLat, startLon, endLat, endLon);
+	}
 	
 </script>
 
