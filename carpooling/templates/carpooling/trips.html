@@ -1,8 +1,18 @@
 {% extends "carpooling/main.html" %}
 {% block content %}
-<div>
+<ul>
 	{% for trip in trips %}
-		<li>{{ trip.status }} {{ trip.user.username }} {{ trip.destination }} {{ trip.origin }} </li>
+	
+		<li style="margin: 30px 20px; border: 1px solid grey; padding: 15px; border-radius: 5px;">
+			<a href="/trips/{{ trip.id }}/" style="color: black"><h2>{{ trip.destination }} </h2></a>
+			<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+				<div>From: {{ trip.origin }} </div>
+				<div>Status: {{ trip.status }}</div>
+				<div>Driver's name: {{ trip.driver }}</div>
+				<div>Date: {{ trip.created_at }}</div>
+			</div>
+		</li>
+		
 	{% endfor %}
-</div>
+</ul>
 {% endblock %}

@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from carpooling.views import home_view, SignUpView, join_pool, match_driver, match_passenger, trips, create_pool
+from carpooling.views import home_view, SignUpView, join_pool, match_driver, match_passenger, trips, create_pool, trip_detail
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,4 +27,5 @@ urlpatterns = [
     path("match/driver/", match_driver, name="match_driver"),
     path("match/passenger/", match_passenger, name="match_passenger"),
     path("trips/", trips, name="trips"),
+    path("trips/<int:trip_id>/", trip_detail, name="trip_detail"),
 ]

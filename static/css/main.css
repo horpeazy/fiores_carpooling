@@ -340,3 +340,14 @@ form button {
 .results {
 	margin-bottom: 150px
 }
+
+.grid-container{
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+	grid-gap: 10px;
+	border: 1px solid red;
+}
+
+.grid div {
+	border: 1px solid red !important;
+}
