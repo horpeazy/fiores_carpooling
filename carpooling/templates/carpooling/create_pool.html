@@ -1,0 +1,243 @@
+{% extends "carpooling/main.html" %}
+{% block head %}
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+	<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+    	<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+{% endblock %}
+{% block content %}
+
+<div>
+	<div class="search-wrapper">
+		<input type="search" name="destination" class="destination"/>
+		<ul class="locations">
+		<ul>
+	</div>
+</div>
+
+<div id="map" style="width: 100%; height: 80vh"></div>
+<div class="match"></div>
+<div class="results"></div>
+<script>
+	const searchInput = document.querySelector(".destination");
+	const locations = document.querySelector(".locations");
+	const locationItems = document.querySelectorAll(".location");
+	let marker, circle, zoomed, dMarker, dCircle, endLon, endLat, startLat, startLon, accuracy, polyline
+	let currenRroute, currentDest, current_location;
+	// Initializes map
+	const map = L.map('map', {
+    		zoom: 16
+	}); 
+
+	// Sets initial coordinates and zoom level
+	map.setView([51.505, -0.09], 16);
+
+	// Sets map data source and associates with map
+	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    		maxZoom: 19,
+    		attribution: '© OpenStreetMap'
+	}).addTo(map); 
+// L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+//    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org///licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+//    maxZoom: 18,
+//    id: 'mapbox.streets',
+//    accessToken: 'your_access_token_here'
+//}).addTo(map);
+	function drawRoute(startLat, startLon, endLat, endLon) {
+		fetch('http://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson')
+    			.then(function (response) {
+        			return response.json();
+    			})
+    			.then(function (json) {
+        			// Parse the response and create a LatLng array for the route
+        			const route = json.routes[0];
+        			const lineString = route.geometry;
+        			let latLngs = [];
+        			currentRoute = []
+        			for (var i = 0; i < lineString.coordinates.length; i++) {
+            				latLngs.push(L.latLng(lineString.coordinates[i][1], lineString.coordinates[i][0]));
+            				currentRoute.push([lineString.coordinates[i][1], lineString.coordinates[i][0]]);
+        			}
+
+        			// Add the route to the map
+        			if (marker) {
+        				console.log("removing marker")
+					map.removeLayer(marker);
+        				map.removeLayer(circle);
+    				}
+    				
+    				if (dMarker) {
+    					map.removeLayer(dMarker);
+        				map.removeLayer(dCircle);
+    				}
+    				
+    				if (polyline) {
+    					map.removeLayer(polyline);
+    				}
+    				
+    				// Add new markers and circle
+    				marker = L.marker([startLat, startLon]).addTo(map);
+    				circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
+    				dMarker = L.marker([endLat, endLon]).addTo(map);
+        			dCircle = L.circle([endLat, endLon], { radius: accuracy }).addTo(map);
+        			polyline = L.polyline(latLngs, {color: 'red'}).addTo(map);
+        			
+        			// Insert the find match button
+        			const matchEl = document.querySelector(".match");
+        			matchEl.innerHTML = `<button class="match-btn">Find Match</button>`
+        			const matchBtn = document.querySelector(".match-btn");
+        			matchBtn.addEventListener("click", (e) => {
+        				fetch("/match/passenger/", {
+        					method: "POST",
+        					headers: {
+        						'Content-Type': 'application/json'
+        					},
+        					body: JSON.stringify({
+        						route: currentRoute,
+        						destination: currentDest,
+        						location: current_location,
+        					})
+        				})
+        				.then(res => {
+        					if (res.status !== 200) {
+        						throw new Error;
+        					}
+        					return res.json()
+        				})
+        				.then(data => {
+        					const resultEl = document.querySelector(".results");
+        					resultEl.innerHTML = "";
+        					data = data.result;
+        					if (data.length < 1) {
+        						resultEl.innerHTML = "<div>No match found!</div>";
+        						return;
+        					}
+        					
+        					for (let i = 0; i < data.length; i++) {
+        						resultEl.innerHTML = `<div>${data[i].username} ${data[i].destination} ${data[i].match_rate}</div>`
+        					}
+        				})
+        				.catch(error => {
+        					console.log(error);
+        				})
+        			})
+        			
+    			});
+	}
+	
+	function distance(lat1, lon1, lat2, lon2) {
+		lat1 = parseFloat(lat1);
+		lat2 = parseFloat(lat2);
+		lon1 = parseFloat(lon1);
+		lon2 = parseFloat(lon2);
+  		var R = 6371; // radius of the earth in km
+  		var dLat = (lat2 - lat1) * (Math.PI / 180);
+  		var dLon = (lon2 - lon1) * (Math.PI / 180);
+ 		var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+  		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  		var d = R * c;
+  		return d;
+	}
+
+
+	navigator.geolocation.watchPosition(success, error);
+
+	function success(pos) {
+
+		startLat = pos.coords.latitude;
+		startLon = pos.coords.longitude;
+		accuracy = pos.coords.accuracy;
+		
+		const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${startLat}&lon=${startLon}`
+		
+		fetch(url)
+		.then(res => {
+			if (res.status == 200) {
+				return res.json()
+			}
+			throw new Error;
+		})
+		.then(data => {
+			current_location = data.display_name;
+		})
+		.catch(error => {
+			console.log(error);
+		})
+		
+		// Remove existing marker and circle
+		if (marker) {
+			map.removeLayer(marker);
+        		map.removeLayer(circle);
+    		}
+    		
+    		if (dMarker) {
+    			map.removeLayer(dMarker);
+        		map.removeLayer(dCircle);
+    		}
+
+
+    		marker = L.marker([startLat, startLon]).addTo(map);
+    		circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
+
+    		if (!zoomed) {
+        		zoomed = map.fitBounds(circle.getBounds()); 
+    		}
+
+    		map.setView([startLat, startLon]);
+    
+		
+		if (endLon && endLat) {
+			drawRoute(startLat, startLon, endLat, endLon)
+		}
+	}
+	
+	function error(err) {
+    		if (err.code === 1) {
+        		alert("Please allow geolocation access");
+    		} else {
+        		alert("Cannot get current location");
+   		}
+	}
+
+
+	searchInput.addEventListener("focus", ()=> {
+		locations.style.display = "block";
+		locations.innerHTML = "";
+	})
+	
+	searchInput.addEventListener("blur", (e)=> {
+		if (e.relatedTarget && !e.relatedTarget.classList.contains("destination")) {
+			locations.style.display = "none";
+		}	
+	})
+	
+	searchInput.addEventListener("keyup", ()=> {
+		const value = searchInput.value;
+		if (value.length > 2) {
+			locations.innerHTML = "";
+			fetch(`https://nominatim.openstreetmap.org/search?q=${value}&format=json`)
+    			.then(response => response.json())
+    			.then(data => {
+      				// Do something with the latitude and longitude
+      				for (let i = 0; i < data.length; i++) {
+      					d = distance(startLat, startLon, data[i].lat, data[i].lon);
+      					locations.innerHTML  += `<li class="location" data-lat=${data[i].lat} data-lon=${data[i].lon} data-dest='${data[i].display_name}'><span class="l-span"><i class="fas fa-map-marker-alt icon"></i><span class="dist">${d.toFixed(2)}km</span></span>${data[i].display_name} </li>`
+      				}
+      				const locationItems = document.querySelectorAll(".location");
+      				locationItems.forEach(item => {
+					item.addEventListener('click', (e) => {
+					endLon = e.target.getAttribute("data-lon");
+					endLat = e.target.getAttribute("data-lat");
+					locations.style.display = "none";
+					currentDest = e.target.getAttribute("data-dest");
+					drawRoute(startLat, startLon, endLat, endLon);
+				})
+	})
+    			})
+    			.catch(error => console.log(error));
+		}
+	})
+	
+</script>
+
+{% endblock %}

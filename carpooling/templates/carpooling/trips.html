@@ -1,0 +1,8 @@
+{% extends "carpooling/main.html" %}
+{% block content %}
+<div>
+	{% for trip in trips %}
+		<li>{{ trip.status }} {{ trip.user.username }} {{ trip.destination }} {{ trip.origin }} </li>
+	{% endfor %}
+</div>
+{% endblock %}

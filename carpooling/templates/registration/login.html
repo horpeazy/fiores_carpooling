@@ -1,0 +1,18 @@
+{% extends "carpooling/main.html" %}
+{% block content %}
+<div >
+<div class="form-control">
+	<div class="form-wrapper">
+		<h2>Login</h2>
+		<form method="post">
+			{% csrf_token %}
+			{{ form.as_p }}
+			<button type="submit" class="submit-btn">Login</button>
+		</form>
+		<a href="/register" style="display: block; margin-top: 15px; font-size: 14px;">
+			Don't have an account?&nbsp<span>Create Account</span>
+		</a>
+	</div>
+</div>
+</div>
+{% endblock %}
