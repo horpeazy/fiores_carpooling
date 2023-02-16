@@ -41,7 +41,7 @@
 	}).addTo(map); 
 	
 	function drawRoute(startLat, startLon, endLat, endLon) {
-		fetch('http://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson')
+		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson')
     			.then(function (response) {
         			return response.json();
     			})
