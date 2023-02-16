@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-x7q=#k#6pox7ncsu23gp-k2a-3j3)6*16^q-zegsa(p864koyx
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = ["https://hopeiyamu.tech", "http://localhost", "http://127.0.0.1"]
 
 
 # Application definition
