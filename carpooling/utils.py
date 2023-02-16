@@ -46,6 +46,32 @@ def haversine_distance(lat1, long1, lat2, long2):
     r = 6371  # Radius of the earth in km
     return c * r
 
+def average_haversine_distance(points):
+    """
+    Calculate the average haversine distance between
+    consecutive points in a list of points.
+    Arguments:
+    points -- a list of points, where each point is a list of
+    two values representing the latitude and longitude.
+    Returns:
+    The average haversine distance between consecutive points in
+    the list in kilometers.
+    """
+    total_distance = 0
+    num_pairs = 0
+
+    for i in range(len(points) - 1):
+        lat1, lon1 = points[i]
+        lat2, lon2 = points[i+1]
+        distance = haversine_distance(lat1, lon1, lat2, lon2)
+        total_distance += distance
+        num_pairs += 1
+
+    if num_pairs == 0:
+        return 0
+
+    return total_distance / num_pairs
+
     
 def match(route1, route2):
     """
@@ -101,6 +127,11 @@ def match_routes(route1, route2, threshold=0.05):
     shorter_route = route1 if len(route1) <= len(route2) else route2
     longer_route = route2 if len(route1) <= len(route2) else route1
     match = 0
+    # Dynamically calculate threshold
+    # avg_hv1 = average_haversine_distance(shorter_route)
+    # avg_hv2 = average_haversine_distance(longer_route)
+    # theeshold = (avg_hv1 + avg_hv2) / 2
+
     for i, (lat1, lon1) in enumerate(shorter_route):
         for j, (lat2, lon2) in enumerate(longer_route):
             if haversine_distance(lat1, lon1, lat2, lon2) <= threshold:

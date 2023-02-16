@@ -21,7 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", home_view, name="home_view"),
     path("", include("django.contrib.auth.urls")),
-    path("register/", SignUpView.as_view()),
+    path("register/", SignUpView.as_view(), name='signup'),
     path("join_pool/", join_pool, name="join_pool"),
     path("create_pool/", create_pool, name="create_pool"),
     path("match/driver/", match_driver, name="match_driver"),

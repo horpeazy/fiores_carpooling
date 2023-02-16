@@ -71,7 +71,7 @@ h4 {
     margin-bottom: 0.75rem;
 }
 h1 {
-    font-size: 2rem;
+    font-size: 1rem;
 }
 h2 {
     font-size: 1rem;
@@ -111,7 +111,7 @@ h4 {
 
 /*  global classes */
 .navbar {
-    padding: 1rem 4rem;
+    padding: 1rem 1rem;
     background-color: #142580;
     height: 70px;
     display: flex;
@@ -119,10 +119,10 @@ h4 {
     align-items: center;
 }
 
+
 .nav-opt a {
 	display: inline-block;
-	padding: 10px;
-	font-size: 18px;
+	font-size: 0.8rem;
 	font-weight: bold;
 }
 
@@ -247,7 +247,7 @@ form button {
 }
 
 .body {
-	padding: 50px 40px;
+	padding: 50px 10px;
 }
 
 
@@ -378,4 +378,18 @@ form button {
   to {
     transform: rotate(360deg);
   }
+}
+
+@media (min-width: 768px) {
+.navbar {
+    padding: 1rem 4rem;
+  }
+.nav-opt a {
+	font-size: 18px;
+	padding: 10px;
+}
+
+.body {
+	padding: 50px 40px;
+}
 }
