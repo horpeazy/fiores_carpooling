@@ -61,7 +61,7 @@ def trip_detail(request, trip_id):
 					'origin': mtrip.origin,
 					'origin_lon': mtrip.origin_lon,
 					'origin_lat': mtrip.origin_lat,
-					'match_rate': match_rate * 100
+					'matchrate': match_rate * 100
 				})
 			
 	return render(request, "carpooling/trip_detail.html", {"trip": trip, "matches": matches})
