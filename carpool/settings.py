@@ -27,7 +27,7 @@ DEBUG = False
 
 CSRF_TRUSTED_ORIGINS = ["https://hopeiyamu.tech", "http://localhost", "http://127.0.0.1"]
 
-ALLOWED_HOSTS = ["http://127.0.0.1", "http://localhost", "https://hopeiyamu.tech"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "hopeiyamu.tech"]
 
 # Application definition
 
