@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.urandom(32)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 CSRF_TRUSTED_ORIGINS = ["https://hopeiyamu.tech", "http://localhost", "http://127.0.0.1"]
 
@@ -124,9 +124,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-	os.path.join(BASE_DIR, 'static')
+	os.path.join(BASE_DIR, 'carpooling', 'static'),
 ]
-STATIC_ROOT = 'staticfiles'
+STATIC_ROOT = 'static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

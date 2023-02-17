@@ -94,7 +94,6 @@ def match_driver(request):
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
 			match_rate = match_routes(route, trip_route)
-			print(match_rate)
 			if  match_rate >= 0.6:
 				matches.append({
 					'username': trip.user.username,
