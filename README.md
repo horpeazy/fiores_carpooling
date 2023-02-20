@@ -114,7 +114,7 @@ Navigate to project homepage [http://127.0.0.1:8000/](http://127.0.0.1:8000/) or
 If you would like to contribute to this project, please fork the repository and submit a pull request.
 ## Credits
 
-This project was developed by Hope Iyamu as part of a technical assesment at Fiores Global.
+This project was developed by Hope Iyamu
 
 ## License
 
