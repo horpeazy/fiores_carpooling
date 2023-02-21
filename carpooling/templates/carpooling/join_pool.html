@@ -38,7 +38,7 @@
     		attribution: '© OpenStreetMap'
 	}).addTo(map);
 	function drawRoute(startLat, startLon, endLat, endLon) {
-		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson')
+		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
     			.then(function (response) {
         			return response.json();
     			})
@@ -144,7 +144,7 @@
 	}
 
 
-	navigator.geolocation.watchPosition(success, error);
+	navigator.geolocation.watchPosition(success, error, { enabledHighAccuracy: true });
 
 	function success(pos) {
 
@@ -167,7 +167,6 @@
 		.catch(error => {
 			console.log(error);
 		})
-		
 		
 		// Remove existing marker and circle
 		if (marker) {
@@ -193,6 +192,7 @@
 		if (endLon && endLat) {
 			drawRoute(startLat, startLon, endLat, endLon)
 		}
+		
 	}
 	
 	function error(err) {

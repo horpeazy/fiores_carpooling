@@ -37,7 +37,7 @@ def create_pool(request):
 @login_required	
 def trips(request):
 	trips = Trip.objects.filter(user=request.user)
-	return render(request, "carpooling/trips.html", {"trips": trips})
+	return render(request, "carpooling/trips.html", {"trips": trips[::-1]})
 	
 
 @login_required
