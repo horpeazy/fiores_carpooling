@@ -4,10 +4,6 @@
 	box-sizing: border-box;
 }
 
-=============== 
-Variables
-===============
-
 :root {
     /* dark shades of primary color*/
     --clr-primary-1: hsl(205, 86%, 17%);
@@ -373,6 +369,24 @@ form button {
   animation: spin 1s ease-in-out infinite;
 }
 
+.end-ride-wrapper {
+	width: 100%;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.end-ride-btn {
+        min-width: 150px;
+	padding: 10px;
+	background-color: red;
+	border: none;
+	color: black;
+	font-size: 16px;
+	cursor: pointer;
+	font-weight: bold;
+	border-radius: 8px;
+        text-align: center;
+}
 
 @keyframes spin {
   to {

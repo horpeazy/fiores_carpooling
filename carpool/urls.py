@@ -18,7 +18,8 @@ from django.urls import path, include
 from carpooling.views import ( home_view, SignUpView, 
 			       join_pool, match_driver, 
 			       match_passenger, trips, 
-			       create_pool, trip_detail
+			       create_pool, trip_detail,
+			       end_trip
 			     )
 
 urlpatterns = [
@@ -26,10 +27,11 @@ urlpatterns = [
     path("", home_view, name="home_view"),
     path("", include("django.contrib.auth.urls")),
     path("register/", SignUpView.as_view(), name='signup'),
-    path("join_pool/", join_pool, name="join_pool"),
-    path("create_pool/", create_pool, name="create_pool"),
+    path("join-ride/", join_pool, name="join_pool"),
+    path("create-ride/", create_pool, name="create_pool"),
     path("match/driver/", match_driver, name="match_driver"),
     path("match/passenger/", match_passenger, name="match_passenger"),
     path("trips/", trips, name="trips"),
     path("trips/<int:trip_id>/", trip_detail, name="trip_detail"),
+    path("end-trip/<int:trip_id>/", end_trip, name="end_trip"),
 ]

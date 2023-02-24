@@ -41,6 +41,14 @@ def trips(request):
 	
 
 @login_required
+def end_trip(request, trip_id):
+	trip = Trip.objects.filter(user=request.user, id=trip_id).first()
+	trip.status = Trip.INACTIVE
+	trip.save()
+	return redirect("home_view")
+	
+
+@login_required
 def trip_detail(request, trip_id):
 	trip = Trip.objects.filter(user=request.user, id=trip_id).first()
 	matches = []
@@ -103,7 +111,7 @@ def match_driver(request):
 					'origin_lat': trip.origin_lat,
 					'match_rate': match_rate * 100
 				})
-		return JsonResponse({"result": matches}, status=200)
+		return JsonResponse({"result": matches, 'id': new_trip.id}, status=200)
 	else:
 		return JsonResponse({"message": "Method Not Allowed"}, status=405)
 		
@@ -143,6 +151,6 @@ def match_passenger(request):
 					'origin_lat': trip.origin_lat,
 					'match_rate': match_rate * 100
 				})
-		return JsonResponse({"result": matches}, status=200)
+		return JsonResponse({"result": matches, 'id': new_trip.id}, status=200)
 	else:
 		return JsonResponse({"message": "Method Not Allowed"}, status=405)

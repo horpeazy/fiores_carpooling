@@ -25,20 +25,32 @@
 	const locationItems = document.querySelectorAll(".location");
 	let marker, circle, zoomed, dMarker, endLon, endLat, startLat, startLon, accuracy, polyline
 	let currenRroute, currentDest, current_location;
+	const west = 32.5599
+	const south = 39.7626
+	const east = 33.5635
+	const north = 40.6801
+	const center = [39.9334, 32.8597];
 
 	// Initializes map
 	const map = L.map('map', {
-    		zoom: 16
-	}); 
-
+    		maxZoom: 18,
+    		minZoom: 10,
+    		maxBoundsViscosity: 1.0
+	});
 	// Sets initial coordinates and zoom level
-	map.setView([51.505, -0.09], 16);
+	map.setView(center, 16);
+	
+	const bounds = L.latLngBounds(
+		L.latLng(south, west),
+		L.latLng(north, east)
+	);
+	
+	map.setMaxBounds(bounds);
 
 	// Sets map data source and associates with map
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    		maxZoom: 19,
     		attribution: '© OpenStreetMap'
-	}).addTo(map); 
+	}).addTo(map);
 	
 	function drawRoute(startLat, startLon, endLat, endLon) {
 		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
@@ -106,9 +118,13 @@
         				.then(data => {
         					const resultEl = document.querySelector(".results");
         					resultEl.innerHTML = "";
+        					const id = data.id
         					data = data.result;
         					if (data.length < 1) {
         						resultEl.innerHTML = "<div>No match found!</div>";
+        						resultEl.innerHTML += `<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
+											<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
+										</div>`
         						matchBtn.style.display = 'none';
         						return;
         					}
@@ -122,6 +138,9 @@
         								</div>`
         					}
         					matchBtn.style.display = 'none';
+        					resultEl.innerHTML += `<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
+											<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
+										</div>`
         				})
         				.catch(error => {
         					console.log(error);
@@ -221,13 +240,17 @@
 		const value = searchInput.value;
 		if (value.length > 2) {
 			locations.innerHTML = "";
-			fetch(`https://nominatim.openstreetmap.org/search?q=${value}&format=json`)
+			fetch(`https://nominatim.openstreetmap.org/search?q=${value}&bounded=1&viewbox=${west},${south},${east},${north}&format=json`)
     			.then(response => response.json())
     			.then(data => {
+    				let locationsContent = "";
       				// Do something with the latitude and longitude
       				for (let i = 0; i < data.length; i++) {
       					d = distance(startLat, startLon, data[i].lat, data[i].lon);
-      					locations.innerHTML  += `<li class="location" data-lat=${data[i].lat} data-lon=${data[i].lon} data-dest='${data[i].display_name}'><span class="l-span"><i class="fas fa-map-marker-alt icon"></i><span class="dist">${d.toFixed(2)}km</span></span>${data[i].display_name} </li>`
+      					locationsContent  += `<li class="location" data-lat=${data[i].lat} data-lon=${data[i].lon} data-dest='${data[i].display_name}'><span class="l-span"><i class="fas fa-map-marker-alt icon"></i><span class="dist">${d.toFixed(2)}km</span></span>${data[i].display_name} </li>`
+      				}
+      				if (locationsContent !== "") {
+      					locations.innerHTML = locationsContent;
       				}
       				const locationItems = document.querySelectorAll(".location");
       				locationItems.forEach(item => {

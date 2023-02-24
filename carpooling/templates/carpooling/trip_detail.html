@@ -54,6 +54,11 @@
 			{% endfor %}
 		</div>
 	{% endif %}
+	{% if trip.status == "active" %}
+		<div class="end-ride-wrapper">
+			<a href="/end-ride/{{ trip.id }}" class="end-ride-btn">End Ride</a>
+		</div>
+	{% endif %}
 	</div>
 </div>
 
@@ -64,21 +69,33 @@
 	const startLon = '{{ trip.origin_lon }}'
 	const endLat = '{{ trip.destination_lat }}'
 	const endLon = '{{ trip.destination_lon }}'
+	const west = 32.5599
+	const south = 39.7626
+	const east = 33.5635
+	const north = 40.6801
+	const center = [39.9334, 32.8597];
 
 	// Initializes map
 	const map = L.map('map', {
-    		zoom: 16
-	}); 
-
+    		maxZoom: 18,
+    		minZoom: 10,
+    		maxBoundsViscosity: 1.0
+	});
 	// Sets initial coordinates and zoom level
-	map.setView([51.505, -0.09], 16);
+	map.setView(center, 16);
+	
+	const bounds = L.latLngBounds(
+		L.latLng(south, west),
+		L.latLng(north, east)
+	);
+	
+	map.setMaxBounds(bounds);
 
 	// Sets map data source and associates with map
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    		maxZoom: 19,
     		attribution: '© OpenStreetMap'
 	}).addTo(map);
-	
+
 	// Declare function to draw map
 	function drawRoute(startLat, startLon, endLat, endLon) {
 		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
