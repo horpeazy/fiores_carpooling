@@ -24,10 +24,10 @@
 	const locationItems = document.querySelectorAll(".location");
 	let marker, circle, zoomed, dMarker, endLon, endLat, startLat, startLon, accuracy, polyline
 	let currenRroute, currentDest, current_location;
-	const west = 32.5599
-	const south = 39.7626
-	const east = 33.5635
-	const north = 40.6801
+	const west = 30.8203
+	const south = 38.6769
+	const east = 33.8558
+	const north = 40.7537
 	const center = [39.9334, 32.8597];
 
 	// Initializes map
@@ -50,6 +50,7 @@
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     		attribution: '© OpenStreetMap'
 	}).addTo(map); 
+
 
 	function drawRoute(startLat, startLon, endLat, endLon) {
 		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
@@ -130,16 +131,20 @@
         					
         					for (let i = 0; i < data.length; i++) {
         						resultEl.innerHTML += `<div class="match-wrapper">
-															<div><span>Username: </span>${data[i].username}</div>
-															<div><span>Destination:</span> ${data[i].destination} </div>
-															<div><span>Origin: </span>${data[i].origin} </div>
-															<div><span>Match rate:</span> ${data[i].match_rate}%</div>
-														</div>`
+											<div><span>Username: </span>${data[i].username}</div>
+											<div><span>Destination:</span> ${data[i].destination} </div>
+											<div><span>Origin: </span>${data[i].origin} </div>
+											<div><span>Match rate:</span> ${data[i].match_rate}%</div>
+											<div>
+											<a href="/match/driver/?ride_id=$match_id="class="a-match-btn">Accept match</a>
+											</div>
+										</div>`
         					}
         					matchBtn.style.display = 'none';
         					resultEl.innerHTML += `<div class="end-ride-wrapper" style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
 											<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
 										</div>`
+						document.querySelector(".a-match-btn").addEventListener("click", match);
         				})
         				.catch(error => {
         					console.log(error);

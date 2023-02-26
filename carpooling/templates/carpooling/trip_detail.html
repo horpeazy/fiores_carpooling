@@ -17,48 +17,141 @@
 		<h2>Trip Details</h2>
 		<p>
 			<span>Date: </span>
-			{{ trip.created_at }}
+			{{ context.trip.created_at }}
 		</p>
 		<p>
 			<span>Destination: </span>
-			{{ trip.destination }}
+			{{ context.trip.destination }}
 		</p>
 		<p>
 			<span>From:</span>
-			{{ trip.origin }}
+			{{ context.trip.origin }}
 		</p>
 		<p>
 			<span>Driver's name: </span>
-			{{ trip.driver }}
+			{{ context.trip.driver }}
 		</p>
 		<p>
 			<span>Role:</span>
-			{{ trip.role }}
+			{{ context.trip.role }}
 		</p>
 		<p>
 			<span>Status: </span>
-			{{ trip.status|upper }}
+			{{ context.trip.status|upper }}
 		</p>
 	</div>
-	{% if matches %}
-		<div class="results" style="margin-bottom: 100px;">
-			{% for match in matches %}
-				<div>
-					<h2> {{ match.destination }} </h2>
-					<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
-						<p>From: {{ match.origin }} </p> 
-						<p>Username: {{ match.username }} </p>
-						<p>Match rate: {{ match.matchrate }}</p>
+	
+	<div>
+		{% if context.trip.role == "passenger" %}
+			{% if context.trip.status == "active" %}
+				{% if context.matched %}
+					<h2>Matched Driver</h2>
+					<div class="results" style="margin-bottom: 100px;">
+						{% for match in context.matched %}
+							<div>
+								<h2> {{ match.destination }} </h2>
+								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+									<p>From: {{ match.origin }} </p> 
+									<p>Username: {{ match.user.username }} </p>
+								</div>
+							</div>
+						{% endfor %}
 					</div>
+				{% else %}
+					<h2>Available Drivers</h2>
+					{% if context.matches %}
+						{% for match in context.matches %}
+							<div>
+								<h2> {{ match.destination }} </h2>
+								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+									<p>From: {{ match.origin }} </p> 
+									<p>Username: {{ match.user.username }} </p>
+									<p>Match rate: {{ match.match_rate }}</p>
+									<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
+											<a href="/match/driver/?ride_id=$match_id="class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
+											</div>
+								</div>
+							</div>
+						{% endfor %}
+					{% else %}
+						<p>Sorry, no match yet.</p>
+					{% endif %}
+				{% endif %}
+				<div class="end-ride-wrapper">
+					<a href="/end-trip/{{ context.trip.id }}" class="end-ride-btn">End Ride</a>
 				</div>
-			{% endfor %}
-		</div>
-	{% endif %}
-	{% if trip.status == "active" %}
-		<div class="end-ride-wrapper">
-			<a href="/end-ride/{{ trip.id }}" class="end-ride-btn">End Ride</a>
-		</div>
-	{% endif %}
+			{% else %}
+				{% if context.matched %}
+					<h2>Matches Driver</h2>
+					<div class="results" style="margin-bottom: 100px;">
+						{% for match in context.matched %}
+							<div>
+								<h2> {{ match.destination }} </h2>
+								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+									<p>From: {{ match.origin }} </p> 
+									<p>Username: {{ match.user.username }} </p>
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				{% endif %}
+			{% endif %}
+		{% else %}
+			{% if context.trip.status == "active" %}
+				{% if context.matched %}
+					<h2>Matched passengers</h2>
+					<div class="results" style="margin-bottom: 100px;">
+						{% for match in context.matched %}
+							<div>
+								<h2> {{ match.destination }} </h2>
+								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+									<p>From: {{ match.origin }} </p> 
+									<p>Username: {{ match.user.username }} </p>
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				{% endif %}
+				<h2>Available passengers</h2>
+					{% if context.matches %}	
+						{% for match in context.matches %}
+							<div>
+								<h2> {{ match.destination }} </h2>
+								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+									<p>From: {{ match.origin }} </p> 
+									<p>Username: {{ match.user.username }} </p>
+									<p>Match rate: {{ match.match_rate }}</p>
+									<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
+											<a href="/match/driver/?ride_id=$match_id="class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
+											</div>
+								</div>
+							</div>
+						{% endfor %}
+					{% else %}
+						<p>Sorry, no passenger available yet.</p>
+					{% endif %}
+				<div class="end-ride-wrapper">
+					<a href="/end-trip/{{ context.trip.id }}" class="end-ride-btn">End Ride</a>
+				</div>
+			{% else %}
+				<h2>Matched Passengers</h2>
+				{% if context.matched %}
+					<div class="results" style="margin-bottom: 100px;">
+						{% for match in context.matched %}
+							<div>
+								<h2> {{ match.destination }} </h2>
+								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+									<p>From: {{ match.origin }} </p> 
+									<p>Username: {{ match.user.username }} </p>
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				{% endif %}
+			{% endif %}
+		{% endif %}
+	</div>
+	
 	</div>
 </div>
 
@@ -69,10 +162,10 @@
 	const startLon = '{{ trip.origin_lon }}'
 	const endLat = '{{ trip.destination_lat }}'
 	const endLon = '{{ trip.destination_lon }}'
-	const west = 32.5599
-	const south = 39.7626
-	const east = 33.5635
-	const north = 40.6801
+	const west = 30.8203
+	const south = 38.6769
+	const east = 33.8558
+	const north = 40.7537
 	const center = [39.9334, 32.8597];
 
 	// Initializes map

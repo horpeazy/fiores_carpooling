@@ -25,10 +25,10 @@
 	const locationItems = document.querySelectorAll(".location");
 	let marker, circle, zoomed, dMarker, endLon, endLat, startLat, startLon, accuracy, polyline
 	let currenRroute, currentDest, current_location;
-	const west = 32.5599
-	const south = 39.7626
-	const east = 33.5635
-	const north = 40.6801
+	const west = 30.8203
+	const south = 38.6769
+	const east = 33.8558
+	const north = 40.7537
 	const center = [39.9334, 32.8597];
 
 	// Initializes map
@@ -38,7 +38,7 @@
     		maxBoundsViscosity: 1.0
 	});
 	// Sets initial coordinates and zoom level
-	map.setView(center, 13);
+	map.setView(center, 10);
 	
 	const bounds = L.latLngBounds(
 		L.latLng(south, west),
@@ -135,12 +135,16 @@
         									<div><span>Destination:</span> ${data[i].destination} </div>
         									<div><span>Origin: </span>${data[i].origin} </div>
         									<div><span>Match rate:</span> ${data[i].match_rate}%</div>
+        									<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
+											<a href="/match/driver/?ride_id=$match_id="class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
+											</div>
         								</div>`
         					}
         					matchBtn.style.display = 'none';
         					resultEl.innerHTML += `<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
 											<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
 										</div>`
+						ocument.querySelector(".a-match-btn").addEventListener("click", match);
         				})
         				.catch(error => {
         					console.log(error);

@@ -51,28 +51,45 @@ def end_trip(request, trip_id):
 @login_required
 def trip_detail(request, trip_id):
 	trip = Trip.objects.filter(user=request.user, id=trip_id).first()
-	matches = []
-	if trip.status == "active":  # Only retrieve matches for trips that are active.
-		if trip.role == "driver":
-			trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.ACTIVE).\
+	matched = []    # matched result
+	matches = []    # possible matches
+	if trip.role == "passenger":
+		trips = Trip.objects.filter(role=Trip.DRIVER, status=Trip.ACTIVE).\
+						   exclude(Q(user=request.user))
+		if trip.matches:
+			match_id = ast.literal(trip.matches)[0]
+			match = Trip.objects.filter(id=match_id).first()
+			matched.append(match)
+		if trip.status == "active":
+			for mtrip in trips:
+				# Convert the route string to a list of coordinates.
+				trip_route = ast.literal_eval(mtrip.route)
+				match_rate = match(ast.literal_eval(trip.route), trip_route)
+				if match_rate >= 0.4 and mtrip not in matched:
+					mtrip.match_rate = match_rate * 100
+					matches.append(mtrip)
+	else:
+		trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.ACTIVE).\
 						    exclude(Q(user=request.user))
-		else:
-			trips = Trip.objects.filter(role=Trip.DRIVER, status=Trip.ACTIVE)
-		for mtrip in trips:
-			# Convert the route string to a list of coordinates.
-			trip_route = ast.literal_eval(mtrip.route)
-			match_rate = match(ast.literal_eval(trip.route), trip_route)
-			if  match_rate >= 0.6:
-				matches.append({
-					'username': mtrip.user.username,
-					'destination': mtrip.destination,
-					'origin': mtrip.origin,
-					'origin_lon': mtrip.origin_lon,
-					'origin_lat': mtrip.origin_lat,
-					'matchrate': match_rate * 100
-				})
-			
-	return render(request, "carpooling/trip_detail.html", {"trip": trip, "matches": matches})
+		if trip.matches:
+			match_ids =  ast.literal(trip.matches)
+			for match_id in match_ids:
+				match = Trip.objects.filter(id=match_id).first()
+				matched.append(match)
+		if trip.status:
+			for mtrip in trips:
+				# Convert the route string to a list of coordinates.
+				trip_route = ast.literal_eval(mtrip.route)
+				match_rate = match(ast.literal_eval(trip.route), trip_route)
+				if match_rate >= 0.4 and mtrip not in matched:
+					mtrip.match_rate = match_rate * 100
+					matches.append(mtrip)
+	context = {
+		"trip": trip,
+		"matched": matched,
+		"matches": matches
+	}
+	return render(request, "carpooling/trip_detail.html", {"context": context})
 
 
 @csrf_exempt	
@@ -102,8 +119,9 @@ def match_driver(request):
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
 			match_rate = match_routes(route, trip_route)
-			if  match_rate >= 0.6:
+			if  match_rate >= 0.4:
 				matches.append({
+					'match_id': trip.id,
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
@@ -113,7 +131,19 @@ def match_driver(request):
 				})
 		return JsonResponse({"result": matches, 'id': new_trip.id}, status=200)
 	else:
-		return JsonResponse({"message": "Method Not Allowed"}, status=405)
+		trip_id = request.GET.get("trip_id", None)
+		match_id = request.GET.get("match_id", None)
+		trip = Trip.objects.filter(id=trip_id).first()
+		match = Trip.objects.filter(id=match_id).first()
+		matches = ast.literal_eval(match.matches)
+		if matches:
+			matches.append(trip_id)
+		else:
+			matches = [trip_id]
+		trip.matches = [match_id]
+		match.matches = matches
+		return redirect(trip_detail, trip_id=trip_id)
+		
 		
 @csrf_exempt	
 def match_passenger(request):
@@ -142,7 +172,7 @@ def match_passenger(request):
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
 			match_rate = match(route, trip_route)
-			if  match_rate >= 0.6:
+			if  match_rate >= 0.4:
 				matches.append({
 					'username': trip.user.username,
 					'destination': trip.destination,
@@ -153,4 +183,15 @@ def match_passenger(request):
 				})
 		return JsonResponse({"result": matches, 'id': new_trip.id}, status=200)
 	else:
-		return JsonResponse({"message": "Method Not Allowed"}, status=405)
+		trip_id = request.args.GET("trip_id", None)
+		match_id = request.args.GET("match_id", None)
+		trip = Trip.objects.filter(id=trip_id).first()
+		match = Trip.objects.filter(id=match_id).first()
+		matches = ast.literal_eval(trip.matches)
+		if matches:
+			matches.append(match_id)
+		else:
+			matches = [match_id]
+		trip.matches = matches
+		match.matches = [trip_id]
+		return redirect(trip_detail, trip_id=trip_id)

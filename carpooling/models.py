@@ -32,3 +32,4 @@ class Trip(models.Model):
 	route = models.TextField(blank=True, null=True)
 	role = models.CharField(max_length=10, choices = ROLE_CHOICES)
 	status = models.CharField(max_length=10, choices = STATUS_CHOICES, default="active")
+	matches = models.TextField(blank=True, null=True)
