@@ -119,7 +119,9 @@ def match_driver(request):
 		matches = []
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
+			print("calculating")
 			match_rate = match_routes(route, trip_route)
+			print("done calculating")
 			if  match_rate >= 0.4:
 				matches.append({
 					'match_id': trip.id,
