@@ -123,9 +123,6 @@ def match_routes(route1, route2, threshold=0.05):
     >>> match_routes(route1, route2)
     0.6666666666666666
     """
-    print(route1)
-    print("-------------")
-    print(route2)
     shorter_route = route1 if len(route1) <= len(route2) else route2
     longer_route = route2 if len(route1) <= len(route2) else route1
     match = 0

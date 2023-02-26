@@ -136,7 +136,7 @@
 											<div><span>Origin: </span>${data[i].origin} </div>
 											<div><span>Match rate:</span> ${data[i].match_rate}%</div>
 											<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-											<a href="/match/driver/?ride_id=$match_id="class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
+											<a href="/match/driver/?trip_id=${id}&match_id=${data[i].id}"class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
 											</div>
 										</div>`
         					}
@@ -245,7 +245,7 @@
 		const value = searchInput.value;
 		if (value.length > 2) {
 			locations.innerHTML = "";
-			fetch(`https://nominatim.openstreetmap.org/search?q=${value}&bounded=1&viewbox=${west},${south},${east},${north}&format=json`)
+			fetch(`https://nominatim.openstreetmap.org/search?q=${value}&format=json`)
     			.then(response => response.json())
     			.then(data => {
       				// Do something with the latitude and longitude

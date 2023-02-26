@@ -57,7 +57,7 @@ def trip_detail(request, trip_id):
 		trips = Trip.objects.filter(role=Trip.DRIVER, status=Trip.ACTIVE).\
 						   exclude(Q(user=request.user))
 		if trip.matches:
-			match_id = ast.literal(trip.matches)[0]
+			match_id = ast.literal_eval(trip.matches)[0]
 			mtrip = Trip.objects.filter(id=match_id).first()
 			matched.append(mtrip)
 		if trip.status == "active":
@@ -72,7 +72,7 @@ def trip_detail(request, trip_id):
 		trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.ACTIVE).\
 						    exclude(Q(user=request.user))
 		if trip.matches:
-			match_ids =  ast.literal(trip.matches)
+			match_ids =  ast.literal_eval(trip.matches)
 			for match_id in match_ids:
 				mtrip = Trip.objects.filter(id=match_id).first()
 				matched.append(mtrip)
@@ -85,7 +85,7 @@ def trip_detail(request, trip_id):
 					mtrip.match_rate = match_rate * 100
 					matches.append(mtrip)
 	context = {
-		"trip": trip,
+		"trip": vars(trip),
 		"matched": matched,
 		"matches": matches
 	}
@@ -95,7 +95,6 @@ def trip_detail(request, trip_id):
 @csrf_exempt	
 def match_driver(request):
 	if request.method == "POST":
-		print("Here!")
 		request_body = json.loads(request.body)
 		route = request_body.get("route")
 		destination = request_body.get("destination")
@@ -119,12 +118,10 @@ def match_driver(request):
 		matches = []
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
-			print("calculating")
 			match_rate = match_routes(route, trip_route)
-			print("done calculating")
 			if  match_rate >= 0.4:
 				matches.append({
-					'match_id': trip.id,
+					'id': trip.id,
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
@@ -138,13 +135,18 @@ def match_driver(request):
 		match_id = request.GET.get("match_id", None)
 		trip = Trip.objects.filter(id=trip_id).first()
 		match = Trip.objects.filter(id=match_id).first()
-		matches = ast.literal_eval(match.matches)
+		if match.matches:
+			matches = ast.literal_eval(match.matches)
+		else:
+			matches = match.matches
 		if matches:
 			matches.append(trip_id)
 		else:
 			matches = [trip_id]
 		trip.matches = [match_id]
 		match.matches = matches
+		trip.save()
+		match.save()
 		return redirect(trip_detail, trip_id=trip_id)
 		
 		
@@ -174,11 +176,10 @@ def match_passenger(request):
 		matches = []
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
-			print("calculating")
 			match_rate = match_routes(route, trip_route)
-			print("done calculating")
 			if  match_rate >= 0.4:
 				matches.append({
+					'id': trip.id,
 					'username': trip.user.username,
 					'destination': trip.destination,
 					'origin': trip.origin,
@@ -192,11 +193,16 @@ def match_passenger(request):
 		match_id = request.args.GET("match_id", None)
 		trip = Trip.objects.filter(id=trip_id).first()
 		match = Trip.objects.filter(id=match_id).first()
-		matches = ast.literal_eval(trip.matches)
+		if match.matches:
+			matches = ast.literal_eval(trip.matches)
+		else:
+			matches = match.matches
 		if matches:
 			matches.append(match_id)
 		else:
 			matches = [match_id]
 		trip.matches = matches
 		match.matches = [trip_id]
+		trip.save()
+		match.save()
 		return redirect(trip_detail, trip_id=trip_id)
