@@ -58,8 +58,8 @@ def trip_detail(request, trip_id):
 						   exclude(Q(user=request.user))
 		if trip.matches:
 			match_id = ast.literal(trip.matches)[0]
-			match = Trip.objects.filter(id=match_id).first()
-			matched.append(match)
+			mtrip = Trip.objects.filter(id=match_id).first()
+			matched.append(mtrip)
 		if trip.status == "active":
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
@@ -74,8 +74,8 @@ def trip_detail(request, trip_id):
 		if trip.matches:
 			match_ids =  ast.literal(trip.matches)
 			for match_id in match_ids:
-				match = Trip.objects.filter(id=match_id).first()
-				matched.append(match)
+				mtrip = Trip.objects.filter(id=match_id).first()
+				matched.append(mtrip)
 		if trip.status:
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
