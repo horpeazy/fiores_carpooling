@@ -64,7 +64,7 @@ def trip_detail(request, trip_id):
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
 				trip_route = ast.literal_eval(mtrip.route)
-				match_rate = match(ast.literal_eval(trip.route), trip_route)
+				match_rate = match_routes(ast.literal_eval(trip.route), trip_route)
 				if match_rate >= 0.4 and mtrip not in matched:
 					mtrip.match_rate = match_rate * 100
 					matches.append(mtrip)
@@ -80,7 +80,7 @@ def trip_detail(request, trip_id):
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
 				trip_route = ast.literal_eval(mtrip.route)
-				match_rate = match(ast.literal_eval(trip.route), trip_route)
+				match_rate = match_routes(ast.literal_eval(trip.route), trip_route)
 				if match_rate >= 0.4 and mtrip not in matched:
 					mtrip.match_rate = match_rate * 100
 					matches.append(mtrip)
@@ -174,7 +174,9 @@ def match_passenger(request):
 		matches = []
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
-			match_rate = match(route, trip_route)
+			print("calculating")
+			match_rate = match_routes(route, trip_route)
+			print("done calculating")
 			if  match_rate >= 0.4:
 				matches.append({
 					'username': trip.user.username,

@@ -77,9 +77,9 @@
 						<p>Sorry, no match yet.</p>
 					{% endif %}
 				{% endif %}
-				<div class="end-ride-wrapper">
-					<a href="/end-trip/{{ context.trip.id }}" class="end-ride-btn">End Ride</a>
-				</div>
+				<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
+											<a href="/end-trip/{{ context.trip.id  }}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
+										</div>
 			{% else %}
 				{% if context.matched %}
 					<h2>Matches Driver</h2>
@@ -130,9 +130,9 @@
 					{% else %}
 						<p>Sorry, no passenger available yet.</p>
 					{% endif %}
-				<div class="end-ride-wrapper">
-					<a href="/end-trip/{{ context.trip.id }}" class="end-ride-btn">End Ride</a>
-				</div>
+				<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
+											<a href="/end-trip/{{ context.trip.id  }}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
+										</div>
 			{% else %}
 				<h2>Matched Passengers</h2>
 				{% if context.matched %}
@@ -158,10 +158,10 @@
 <script>
 	let marker, circle, dMarker, zoomed;
 	let currenRroute, currentDest, current_location;
-	const startLat = '{{ trip.origin_lat }}'
-	const startLon = '{{ trip.origin_lon }}'
-	const endLat = '{{ trip.destination_lat }}'
-	const endLon = '{{ trip.destination_lon }}'
+	const startLat = '{{ context.trip.origin_lat }}'
+	const startLon = '{{ context.trip.origin_lon }}'
+	const endLat = '{{ context.trip.destination_lat }}'
+	const endLon = '{{ context.trip.destination_lon }}'
 	const west = 30.8203
 	const south = 38.6769
 	const east = 33.8558
