@@ -95,6 +95,7 @@ def trip_detail(request, trip_id):
 @csrf_exempt	
 def match_driver(request):
 	if request.method == "POST":
+		print("Here!")
 		request_body = json.loads(request.body)
 		route = request_body.get("route")
 		destination = request_body.get("destination")
