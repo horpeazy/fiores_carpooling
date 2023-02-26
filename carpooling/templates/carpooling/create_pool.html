@@ -29,16 +29,16 @@
 	const south = 38.6769
 	const east = 33.8558
 	const north = 40.7537
-	const center = [39.9334, 32.8597];
+	const center = [39.9334, 34.8597];
 
 	// Initializes map
 	const map = L.map('map', {
     		maxZoom: 18,
-    		minZoom: 10,
+    		minZoom: 8,
     		maxBoundsViscosity: 1.0
 	});
 	// Sets initial coordinates and zoom level
-	map.setView(center, 10);
+	map.setView(center, 5);
 	
 	const bounds = L.latLngBounds(
 		L.latLng(south, west),

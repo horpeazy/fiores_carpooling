@@ -76,7 +76,7 @@ def trip_detail(request, trip_id):
 			for match_id in match_ids:
 				mtrip = Trip.objects.filter(id=match_id).first()
 				matched.append(mtrip)
-		if trip.status:
+		if trip.status == "active":
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
 				trip_route = ast.literal_eval(mtrip.route)
