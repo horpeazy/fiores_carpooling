@@ -53,106 +53,134 @@
 
 
 	function drawRoute(startLat, startLon, endLat, endLon) {
-		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
-    			.then(function (response) {
-        			return response.json();
-    			})
-    			.then(function (json) {
-        			// Parse the response and create a LatLng array for the route
-        			const route = json.routes[0];
-        			const lineString = route.geometry;
-        			let latLngs = [];
-        			currentRoute = []
-        			for (var i = 0; i < lineString.coordinates.length; i++) {
-            				latLngs.push(L.latLng(lineString.coordinates[i][1], lineString.coordinates[i][0]));
-            				currentRoute.push([lineString.coordinates[i][1], lineString.coordinates[i][0]]);
-        			}
+		const routeUrl = 'https://router.project-osrm.org/route/v1/driving/';		
+		fetch(routeUrl + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
+		.then(function (response) {
+			return response.json();
+		})
+		.then(function (json) {
+			// Parse the response and create a LatLng array for the route
+			const route = json.routes[0];
+			const lineString = route.geometry;
+			let latLngs = [];
+			currentRoute = []
+			for (var i = 0; i < lineString.coordinates.length; i++) {
+					latLngs.push(L.latLng(lineString.coordinates[i][1], lineString.coordinates[i][0]));
+					currentRoute.push([lineString.coordinates[i][1], lineString.coordinates[i][0]]);
+			}
 
-        			// Add the route to the map
-        			if (marker) {
-					map.removeLayer(marker);
-        				map.removeLayer(circle);
-    				}
-    				
-    				if (dMarker) {
-    					map.removeLayer(dMarker);
-    				}
-    				
-    				if (polyline) {
-    					map.removeLayer(polyline);
-    				}
-    				
-    				// Add new markers and circle
-    				marker = L.marker([startLat, startLon]).addTo(map);
-    				circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
-    				dMarker = L.marker([endLat, endLon]).addTo(map);
-        			polyline = L.polyline(latLngs, {color: 'red'}).addTo(map);
+			// Add the route to the map
+			if (marker) {
+			map.removeLayer(marker);
+				map.removeLayer(circle);
+			}
+			
+			if (dMarker) {
+				map.removeLayer(dMarker);
+			}
+			
+			if (polyline) {
+				map.removeLayer(polyline);
+			}
+			
+			// Add new markers and circle
+			marker = L.marker([startLat, startLon]).addTo(map);
+			circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
+			dMarker = L.marker([endLat, endLon]).addTo(map);
+			polyline = L.polyline(latLngs, {color: 'red'}).addTo(map);
+			
+			// Insert the find match button
+			const matchEl = document.querySelector(".match");
+			matchEl.innerHTML = `<button class="match-btn">Find Match</button>`
+			const matchBtn = document.querySelector(".match-btn");
+			matchBtn.addEventListener("click", (e) => {
+				matchBtn.innerHTML = `<div class='spinner'></div>`
+				fetch(routeUrl + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson')
+				.then(function (response) {
+					return response.json();
+				})
+				.then(function (json) {
+					// Parse the response and create a LatLng array for the route
+					const route = json.routes[0];
+					const lineString = route.geometry;
+					currentRoute = [];
+					for (var i = 0; i < lineString.coordinates.length; i++) {
+							currentRoute.push([lineString.coordinates[i][1], lineString.coordinates[i][0]]);
+					}
+					fetch("/match/driver/", {
+						method: "POST",
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							route: currentRoute,
+							destination: currentDest,
+							location: current_location,
+							origin_lat: startLat,
+							origin_lon: startLon,
+							destination_lat: endLat,
+							destination_lon: endLon,
+						})
+					})
+					.then(res => {
+						if (res.status !== 200) {
+							throw new Error;
+						}
+						return res.json()
+					})
+					.then(data => {
+						const resultEl = document.querySelector(".results");
+						resultEl.innerHTML = "";
+						const id = data.id;
+						data = data.result;
+						if (data.length < 1) {
+							resultEl.innerHTML = "<div>No match found!</div>";
+							resultEl.innerHTML += `<div class="end-ride-wrapper"  style="width: 100%;
+										display: flex; justify-content: flex-end; margin-top: 50px;">
+									<a href="/end-trip/${id}" class="end-ride-btn" 
+									style="min-width:150px; padding: 10px; 
+									background-color: red; border: none; color: white; 
+									font-size: 16px; cursor: pointer; font-weight: bold; 
+									border-radius: 8px; text-align: center;">End Ride</a>
+									</div>`
+							matchBtn.style.display = 'none';
+							return;
+						}
+					
+						for (let i = 0; i < data.length; i++) {
+							resultEl.innerHTML += `<div class="match-wrapper">
+										<div><span>Username: </span>${data[i].username}</div>
+										<div><span>Destination:</span> ${data[i].destination} </div>
+										<div><span>Origin: </span>${data[i].origin} </div>
+										<div><span>Match rate:</span> ${data[i].match_rate}%</div>
+										<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
+										<a href="/match/driver/?trip_id=${id}&match_id=${data[i].id}"
+											style="min-width:150px; padding: 5px; background-color: green;
+											border: none; color: white; font-size: 14px; cursor: pointer;
+											font-weight: bold; border-radius: 4px; text-align: center;">
+										Accept match</a>
+										</div>
+									</div>`
+						}
+						matchBtn.style.display = 'none';
+						resultEl.innerHTML += `<div class="end-ride-wrapper" style="width: 100%; display: flex;
+										justify-content: flex-end; margin-top: 50px;">
+									<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px;
+										padding: 10px; background-color: red; border: none; color: white;
+										font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px;
+										text-align: center;">
+									End Ride
+									</a>
+									</div>`
+					})
+					.catch(error => {
+						console.log(error);
+						matchBtn.innerHTML = `Find Match`;
+					})
+				})
+        		})
         			
-        			// Insert the find match button
-        			const matchEl = document.querySelector(".match");
-        			matchEl.innerHTML = `<button class="match-btn">Find Match</button>`
-        			const matchBtn = document.querySelector(".match-btn");
-        			matchBtn.addEventListener("click", (e) => {
-        				matchBtn.innerHTML = `<div class='spinner'></div>`
-        				fetch("/match/driver/", {
-        					method: "POST",
-        					headers: {
-        						'Content-Type': 'application/json'
-        					},
-        					body: JSON.stringify({
-        						route: currentRoute,
-        						destination: currentDest,
-        						location: current_location,
-        						origin_lat: startLat,
-        						origin_lon: startLon,
-        						destination_lat: endLat,
-        						destination_lon: endLon,
-        					})
-        				})
-        				.then(res => {
-        					if (res.status !== 200) {
-        						throw new Error;
-        					}
-        					return res.json()
-        				})
-        				.then(data => {
-        					const resultEl = document.querySelector(".results");
-        					resultEl.innerHTML = "";
-        					const id = data.id;
-        					data = data.result;
-        					if (data.length < 1) {
-        						resultEl.innerHTML = "<div>No match found!</div>";
-        						resultEl.innerHTML += `<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
-											<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
-										</div>`
-        						matchBtn.style.display = 'none';
-        						return;
-        					}
-        					
-        					for (let i = 0; i < data.length; i++) {
-        						resultEl.innerHTML += `<div class="match-wrapper">
-											<div><span>Username: </span>${data[i].username}</div>
-											<div><span>Destination:</span> ${data[i].destination} </div>
-											<div><span>Origin: </span>${data[i].origin} </div>
-											<div><span>Match rate:</span> ${data[i].match_rate}%</div>
-											<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-											<a href="/match/driver/?trip_id=${id}&match_id=${data[i].id}"class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
-											</div>
-										</div>`
-        					}
-        					matchBtn.style.display = 'none';
-        					resultEl.innerHTML += `<div class="end-ride-wrapper" style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
-											<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
-										</div>`
-						document.querySelector(".a-match-btn").addEventListener("click", match);
-        				})
-        				.catch(error => {
-        					console.log(error);
-        					matchBtn.innerHTML = `Find Match`;
-        				})
-        			})
-        			
-    			});
+    		})
 	}
 	
 	function distance(lat1, lon1, lat2, lon2) {

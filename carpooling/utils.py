@@ -92,7 +92,9 @@ def match(route1, route2):
             if point1 == point2:
                 matches += 1
                 break
-    return matches / len(shorter_route)
+    match = matches / len(shorter_route)
+    print(match)
+    return match
 
 
 def match_routes(route1, route2, threshold=0.05):
