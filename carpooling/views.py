@@ -51,42 +51,41 @@ def end_trip(request, trip_id):
 @login_required
 def trip_detail(request, trip_id):
 	trip = Trip.objects.filter(user=request.user, id=trip_id).first()
-	matched = []    # matched result
 	matches = []    # possible matches
-	if trip.role == "passenger":
-		trips = Trip.objects.filter(role=Trip.DRIVER, status=Trip.ACTIVE).\
-						   exclude(Q(user=request.user))
-		if trip.matches:
-			match_id = ast.literal_eval(trip.matches)[0]
-			mtrip = Trip.objects.filter(id=match_id).first()
-			matched.append(mtrip)
+	if trip.role == "passenger":	
 		if trip.status == "active":
+			trips = Trip.objects.filter(role=Trip.DRIVER).\
+				     exclude(Q(user=request.user)).\
+				     exclude(Q(status=Trip.INACTIVE))
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
 				trip_route = ast.literal_eval(mtrip.route)
 				match_rate = match_routes(ast.literal_eval(trip.route), trip_route)
-				if match_rate >= 0.4 and mtrip not in matched:
+				# add the match to potential matches if it's not the driver
+				if match_rate >= 0.4 and mtrip.user != trip.driver:
 					mtrip.match_rate = match_rate * 100
-					matches.append(mtrip)
-	else:
-		trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.ACTIVE).\
+					matches.append(vars(mtrip))
+	else:	
+		if trip.status == "active":
+			trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.PENDING).\
 						    exclude(Q(user=request.user))
-		if trip.matches:
-			match_ids =  ast.literal_eval(trip.matches)
-			for match_id in match_ids:
-				mtrip = Trip.objects.filter(id=match_id).first()
-				matched.append(mtrip)
-		if trip.status == "active":
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
 				trip_route = ast.literal_eval(mtrip.route)
 				match_rate = match_routes(ast.literal_eval(trip.route), trip_route)
-				if match_rate >= 0.4 and mtrip not in matched:
+				if ( match_rate >= 0.4 and mtrip not in trip.passengers
+				     and mtrip not in trip.requests ):
 					mtrip.match_rate = match_rate * 100
-					matches.append(mtrip)
+					matches.append(vars(mtrip))
+	requests = trip.requests.all()
+	passengers = trip.passengers.all()
+	driver = trip.driver
+	trip =  vars(trip)
+	trip["requests"] = requests
+	trip["passengers"] = passengers
+	trip["driver"] = driver
 	context = {
-		"trip": vars(trip),
-		"matched": matched,
+		"trip": trip,
 		"matches": matches
 	}
 	return render(request, "carpooling/trip_detail.html", {"context": context})
@@ -104,7 +103,7 @@ def match_driver(request):
 		destination_lat = request_body.get("destination_lat")
 		destination_lon = request_body.get("destination_lon")
 		# Cancel former trips and save the new trip
-		trips = Trip.objects.filter(user=request.user, status=Trip.ACTIVE)
+		trips = Trip.objects.filter(user=request.user).exclude(Q(status=Trip.INACTIVE))
 		for trip in trips:
 			trip.status = Trip.INACTIVE
 			trip.save()
@@ -114,7 +113,7 @@ def match_driver(request):
 					       destination_lat=destination_lat,
 					       destination_lon=destination_lon)
 		# find matches in the db
-		trips = Trip.objects.filter(role=Trip.DRIVER, status=Trip.ACTIVE)
+		trips = Trip.objects.filter(role=Trip.DRIVER).exclude(Q(status=Trip.INACTIVE))
 		matches = []
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
@@ -135,18 +134,11 @@ def match_driver(request):
 		match_id = request.GET.get("match_id", None)
 		trip = Trip.objects.filter(id=trip_id).first()
 		match = Trip.objects.filter(id=match_id).first()
-		if match.matches:
-			matches = ast.literal_eval(match.matches)
-		else:
-			matches = match.matches
-		if matches:
-			matches.append(trip_id)
-		else:
-			matches = [trip_id]
-		trip.matches = [match_id]
-		match.matches = matches
-		trip.save()
-		match.save()
+		if trip and match:
+			# trip.requests.add(match)
+			match.requests.add(trip)
+			trip.save()
+			match.save()
 		return redirect(trip_detail, trip_id=trip_id)
 		
 		
@@ -162,17 +154,21 @@ def match_passenger(request):
 		destination_lat = request_body.get("destination_lat")
 		destination_lon = request_body.get("destination_lon")
 		# Cancel former trips and save the new trip
-		trips = Trip.objects.filter(user=request.user, status=Trip.ACTIVE)
+		trips = Trip.objects.filter(user=request.user).exclude(Q(status=Trip.INACTIVE))
 		for trip in trips:
 			trip.status = Trip.INACTIVE
 			trip.save()
 		new_trip = Trip.objects.create(user=request.user, destination=destination, origin=origin,
-					       route=route, role=Trip.DRIVER, driver=request.user.username,
+					       route=route, role=Trip.DRIVER,
 					       origin_lat=origin_lat, origin_lon=origin_lon,
 					       destination_lat=destination_lat, 
 					       destination_lon=destination_lon)
+		# set the trip as the drivers trip
+		new_trip.driver = new_trip
+		new_trip.save()
+
 		# find matches in the db
-		trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.ACTIVE)
+		trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.PENDING)
 		matches = []
 		for trip in trips:
 			trip_route = ast.literal_eval(trip.route)
@@ -189,20 +185,40 @@ def match_passenger(request):
 				})
 		return JsonResponse({"result": matches, 'id': new_trip.id}, status=200)
 	else:
-		trip_id = request.args.GET("trip_id", None)
-		match_id = request.args.GET("match_id", None)
+		trip_id = request.GET.get("trip_id", None)
+		match_id = request.GET.get("match_id", None)
 		trip = Trip.objects.filter(id=trip_id).first()
 		match = Trip.objects.filter(id=match_id).first()
-		if match.matches:
-			matches = ast.literal_eval(trip.matches)
-		else:
-			matches = match.matches
-		if matches:
-			matches.append(match_id)
-		else:
-			matches = [match_id]
-		trip.matches = matches
-		match.matches = [trip_id]
-		trip.save()
-		match.save()
+		if trip and match:
+			# trip.requests.add(match)
+			match.requests.add(trip)
+			trip.save()
+			match.save()
 		return redirect(trip_detail, trip_id=trip_id)
+
+
+@login_required
+def accept_trip(request):
+	trip_id = request.GET.get("ride_id", None)
+	match_id = request.GET.get("match_id", None)
+	trip = Trip.objects.filter(id=trip_id).first()
+	match = Trip.objects.filter(id=match_id).first()
+	
+	if not trip or not match:
+		return "oops"
+	if trip.role == "passenger":
+		trip.status = Trip.ACTIVE
+		match.status = Trip.ACTIVE
+		trip.driver = match
+		trip.requests.remove(match)
+		match.passengers.add(trip)
+	else:
+		trip.status = Trip.ACTIVE
+		match.status = Trip.ACTIVE
+		trip.passengers.add(match)
+		trip.requests.remove(match)
+		match.driver = trip
+		
+	trip.save()
+	match.save()
+	return redirect(trip_detail, trip_id=trip_id)

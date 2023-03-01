@@ -12,7 +12,7 @@
 				{% else %}
 				<p >Status: <span style="color: green;">{{ trip.status }}</span></p>
 				{% endif %}
-				<p>Driver's name: {{ trip.driver }}</p>
+				<p>Driver's name: {{ trip.driver.user.username }}</p>
 				<p>Date: {{ trip.created_at }}</p>
 			</div>
 		</li>

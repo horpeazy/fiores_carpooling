@@ -29,7 +29,7 @@
 		</p>
 		<p>
 			<span>Driver's name: </span>
-			{{ context.trip.driver }}
+			{{ context.trip.driver.user.username }}
 		</p>
 		<p>
 			<span>Role:</span>
@@ -41,71 +41,85 @@
 		</p>
 	</div>
 	
+	<div>
+	{% if context.trip.requests %}
+		<h2>Match Requests</h2>
+		{% for match in context.trip.requests %}
+			<div style="max-width: 700px; border: 1px solid grey; padding: 20px; border-radius: 10px;">
+				<p style="font-weight: bold;"> {{ match.destination }} </p>
+				<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+				<p>From: {{ match.origin }} </p> 
+				<p>Username: {{ match.user.username }} </p>
+				</div>
+				<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
+					<a href="/accept-trip?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept ride</a>
+					</div>
+			</div>	
+		{% endfor %}
+	{% endif %}
+	</div>
+	
 	<div style="margin-top: 50px;">
 		{% if context.trip.role == "passenger" %}
-			{% if context.trip.status == "active" %}
-				{% if context.matched %}
+			{% if context.trip.status == "started" or context.trip.status == "pending" %}
+				{% if context.trip.driver %}
 					<h2>Matched Driver</h2>
 					<div class="results" style="margin-bottom: 100px; border: 1px solid grey; padding: 20px;">
-						{% for match in context.matched %}
-							<div>
-								<h3> {{ match.destination }} </h3>
-								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
-									<p>From: {{ match.origin }} </p> 
-									<p>Username: {{ match.user.username }} </p>
-									<p>Status: {{ match.status }} </p>
-								</div>
+						<div>
+							<p style="font-weight: bold;"> {{ context.trip.driver.destination }} </p>
+							<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+								<p>From: {{ context.trip.driver.origin }} </p> 
+								<p>Username: {{ context.trip.driver.user.username }} </p>
+								<p>Status: {{ context.trip.driver.status }} </p>
 							</div>
-						{% endfor %}
+						</div>
 					</div>
 				{% else %}
 					<h2>Available Drivers</h2>
 					{% if context.matches %}
 						{% for match in context.matches %}
 							<div>
-								<h3> {{ match.destination }} </h3>
+								<p style="font-weight: bold;"> {{ match.destination }} </p>
 								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
 									<p>From: {{ match.origin }} </p> 
 									<p>Username: {{ match.user.username }} </p>
 									<p>Match rate: {{ match.match_rate }}</p>
 									<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-											<a href="/match/driver/?ride_id=$match_id="class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
+											<a href="/match/driver/?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Request ride</a>
 											</div>
 								</div>
 							</div>
 						{% endfor %}
 					{% else %}
-						<p>Sorry, no match yet.</p>
+						<p>Sorry, no driver available yet.</p>
 					{% endif %}
 				{% endif %}
 				<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
 											<a href="/end-trip/{{ context.trip.id  }}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
 										</div>
 			{% else %}
-				{% if context.matched %}
+				{% if context.trip.driver %}
 					<h2>Matched Driver</h2>
-					<div class="results" style="margin-bottom: 100px; padding: 20px; border-radius: 1px solid grey;">
-						{% for match in context.matched %}
-							<div>
-								<h3> {{ match.destination }} </h3>
-								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
-									<p>From: {{ match.origin }} </p> 
-									<p>Username: {{ match.user.username }} </p>
-									<p>Status: {{ match.status }} </p>
-								</div>
+					<div class="results" style="margin-bottom: 100px; border: 1px solid grey; padding: 20px;">
+						<div>
+							<p style="font-weight: bold;"> {{ context.trip.driver.destination }} </p>
+							<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
+								<p>From: {{ context.trip.driver.origin }} </p> 
+								<p>Username: {{ context.trip.driver.user.username }} </p>
+								<p>Status: {{ context.trip.driver.status }} </p>
 							</div>
-						{% endfor %}
+						</div>
 					</div>
 				{% endif %}
 			{% endif %}
 		{% else %}
-			{% if context.trip.status == "active" %}
-				{% if context.matched %}
+			{% if context.trip.status == "started" or context.trip.status == "pending" %}
+				{% if context.trip.passengers %}
 					<h2>Matched passengers</h2>
-					<div class="results" style="margin-bottom: 100px; padding: 20px; border-radius: 1px solid grey;">
-						{% for match in context.matched %}
-							<div>
-								<h3> {{ match.destination }} </h3>
+					<div class="results" style="margin-bottom: 100px;">
+						{% for match in context.trip.passengers %}
+							<div style="padding: 20px; border: 1px solid grey;">
+								<p style="font-weight: bold;"> {{ match.destination }} </p>
 								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
 									<p>From: {{ match.origin }} </p> 
 									<p>Username: {{ match.user.username }} </p>
@@ -119,13 +133,13 @@
 					{% if context.matches %}	
 						{% for match in context.matches %}
 							<div>
-								<h3> {{ match.destination }} </h3>
+								<p style="font-weight: bold;"> {{ match.destination }} </p>
 								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
 									<p>From: {{ match.origin }} </p> 
 									<p>Username: {{ match.user.username }} </p>
 									<p>Match rate: {{ match.match_rate }}</p>
 									<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-											<a href="/match/driver/?ride_id=$match_id="class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept match</a>
+											<a href="/match/passenger/?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Offer ride</a>
 											</div>
 								</div>
 							</div>
@@ -138,11 +152,11 @@
 										</div>
 			{% else %}
 				<h2>Matched Passengers</h2>
-				{% if context.matched %}
+				{% if context.trip.passengers %}
 					<div class="results" style="margin-bottom: 100px; border: 1px solid grey; padding: 20px;">
-						{% for match in context.matched %}
+						{% for match in context.trip.passengers %}
 							<div>
-								<h3> {{ match.destination }} </h3>
+								<p style="font-weight: bold;"> {{ match.destination }} </p>
 								<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
 									<p>From: {{ match.origin }} </p> 
 									<p>Username: {{ match.user.username }} </p>

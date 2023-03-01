@@ -373,6 +373,7 @@ form button {
 	width: 100%;
 	display: flex;
 	justify-content: flex-end;
+	margin-top: 50px;
 }
 
 .end-ride-btn {
