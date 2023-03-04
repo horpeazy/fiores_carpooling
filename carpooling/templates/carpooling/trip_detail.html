@@ -190,8 +190,8 @@
 	// Initializes map
 	const map = L.map('map', {
     		maxZoom: 18,
-    		minZoom: 8,
-    		maxBoundsViscosity: 1.0
+    		// minZoom: 8,
+    		// maxBoundsViscosity: 1.0
 	});
 	// Sets initial coordinates and zoom level
 	map.setView(center, 13);
@@ -201,7 +201,7 @@
 		L.latLng(north, east)
 	);
 	
-	map.setMaxBounds(bounds);
+	// map.setMaxBounds(bounds);
 
 	// Sets map data source and associates with map
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
