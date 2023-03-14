@@ -5,9 +5,10 @@ from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 import json
 import ast
-from .models import Trip
+from .models import Trip, Review, Vehicle
 from .utils import match, match_routes
 
 # Create your views here.
@@ -22,6 +23,26 @@ class SignUpView(generic.CreateView):
 @login_required
 def home_view(request):
 	return render(request, "carpooling/index.html")
+	
+@login_required
+def account(request):
+	user = request.user
+	vehicle = Vehicle.objects.filter(user=request.user).first()
+	context = {
+		"user": user,
+		"vehicle": vehicle,
+	}
+	return render(request, "carpooling/account.html", {"context": context})
+	
+@login_required
+def profile(request, user_id):
+	user = User.objects.filter(id=user_id).first()
+	vehicle = Vehicle.objects.filter(user=user).first()
+	context = {
+		"user": user,
+		"vehicle": vehicle,
+	}
+	return render(request, "carpooling/profile.html", {"context": context})
 		
 
 @login_required		
@@ -41,11 +62,41 @@ def trips(request):
 	
 
 @login_required
-def end_trip(request, trip_id):
-	trip = Trip.objects.filter(user=request.user, id=trip_id).first()
+def end_trip(request):
+	if request.method == "POST":
+		trip_id = request.POST.get("trip_id")
+		user_id = request.POST.get("user_id")
+		review = request.POST.get("review")
+		trip = Trip.objects.filter(user=request.user, id=trip_id).first()
+		user = User.objects.filter(id=user_id).first()
+		if review:
+			review = Review.objects.create(user=user, review=review,
+						       reviewer=request.user, trip=trip)
+	else:
+		trip_id = request.GET.get("trip_id")
+		trip = Trip.objects.filter(user=request.user, id=trip_id).first()
 	trip.status = Trip.INACTIVE
 	trip.save()
-	return redirect("home_view")
+	return redirect("trip_detail", trip_id)
+	
+
+@login_required
+@csrf_exempt
+def create_review(request):
+	if request.method == "POST":
+		request_body = json.loads(request.body)
+		review = request_body.get("review")
+		user_id = request_body.get("user_id")
+		trip_id = request_body.get("trip_id")
+		trip = Trip.objects.filter(id=trip_id).first()
+		user = User.objects.filter(id=user_id).first()
+		if review:
+			review = Review.objects.create(user=user, review=review,
+						       reviewer=request.user, trip=trip)
+		response = {
+			"message": 'Created Successfully'
+		}
+		return JsonResponse(response, status=201)
 	
 
 @login_required
@@ -53,7 +104,7 @@ def trip_detail(request, trip_id):
 	trip = Trip.objects.filter(user=request.user, id=trip_id).first()
 	matches = []    # possible matches
 	if trip.role == "passenger":	
-		if trip.status == "active":
+		if trip.status == Trip.ACTIVE:
 			trips = Trip.objects.filter(role=Trip.DRIVER).\
 				     exclude(Q(user=request.user)).\
 				     exclude(Q(status=Trip.INACTIVE))
@@ -66,16 +117,19 @@ def trip_detail(request, trip_id):
 					mtrip.match_rate = match_rate * 100
 					matches.append(vars(mtrip))
 	else:	
-		if trip.status == "active":
+		if trip.status == Trip.ACTIVE:
 			trips = Trip.objects.filter(role=Trip.PASSENGER, status=Trip.PENDING).\
 						    exclude(Q(user=request.user))
 			for mtrip in trips:
 				# Convert the route string to a list of coordinates.
 				trip_route = ast.literal_eval(mtrip.route)
 				match_rate = match_routes(ast.literal_eval(trip.route), trip_route)
+				review = Review.objects.filter(reviewer=mtrip.user, trip=trip).first()
+				print(review)
 				if ( match_rate >= 0.4 and mtrip not in trip.passengers
 				     and mtrip not in trip.requests ):
 					mtrip.match_rate = match_rate * 100
+					mtrip = vars(mtrip)
 					matches.append(vars(mtrip))
 	requests = trip.requests.all()
 	passengers = trip.passengers.all()
@@ -122,6 +176,7 @@ def match_driver(request):
 				matches.append({
 					'id': trip.id,
 					'username': trip.user.username,
+					'user_id': trip.user.id,
 					'destination': trip.destination,
 					'origin': trip.origin,
 					'origin_lon': trip.origin_lon,
@@ -177,6 +232,7 @@ def match_passenger(request):
 				matches.append({
 					'id': trip.id,
 					'username': trip.user.username,
+					'user_id': trip.user.id,
 					'destination': trip.destination,
 					'origin': trip.origin,
 					'origin_lon': trip.origin_lon,
@@ -222,3 +278,17 @@ def accept_trip(request):
 	trip.save()
 	match.save()
 	return redirect(trip_detail, trip_id=trip_id)
+	
+
+@login_required
+def reviews(request):
+	user_id = request.GET.get("user_id", None)
+	if user_id:
+		user = User.objects.filter(id=user_id).first()
+	else:
+		user = request.user
+	reviews = Review.objects.filter(user=user).all()
+	context = {
+		"reviews": reviews,
+	}
+	return render(request, "carpooling/reviews.html", {"context": context})

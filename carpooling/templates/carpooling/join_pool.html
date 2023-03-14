@@ -2,6 +2,43 @@
 {% block head %}
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
 	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+	<script src='https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js'></script>
+    	<link href='https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css' rel='stylesheet' />
+    	
+    	<!-- Direction API -->
+        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
+        <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css">
+        
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer"
+    />
+    	
+        <style>
+        	#map {
+            		width: 100%; 
+            		height: 80vh;
+        	}
+        	#panorama {
+            		position: absolute;
+            		top: 0;
+            		left: 0;
+            		bottom: 0;
+            		width: 50%;
+        	}
+        	
+        	.acc-btn {
+			min-width:150px; 
+			padding: 5px; 
+			background-color: blue;
+			border: none; 
+			color: white; 
+			font-size: 14px; 
+			cursor: pointer;
+			font-weight: bold; 
+			border-radius: 4px; 
+			text-align: center;
+		}
+    	</style>
 {% endblock %}
 {% block content %}
 <div class="body">
@@ -13,7 +50,15 @@
 		</div>
 	</div>
 
-	<div id="map" style="width: 100%; height: 80vh"></div>
+	<div class="position-relative h-100 w-100">
+        <div id='map'></div>
+        <div class="position-absolute top-0 end-0 ">
+            <button class="btn btn-lg btn-light bg-gradient bg-light border me-2 mt-3" id="get-direction"><i class="fa fa-directions"></i> Direction</button>
+            <button class="btn btn-lg btn-light bg-gradient bg-light border me-2 mt-3 d-none" id="end-direction"><i class="fa fa-times"></i> End Direction</button>
+
+        </div>
+    </div>
+	<div id='panorama'></div>
 	<div class="match"></div>
 	<div class="results" style="margin-bottom: 100px;"></div>
 </div>
@@ -22,78 +67,164 @@
 	const searchInput = document.querySelector(".destination");
 	const locations = document.querySelector(".locations");
 	const locationItems = document.querySelectorAll(".location");
-	let marker, circle, zoomed, dMarker, endLon, endLat, startLat, startLon, accuracy, polyline
+	let circle, zoomed, dMarker, endLon, endLat, startLat, startLon, accuracy, polyline;
 	let currenRroute, currentDest, current_location;
-	const west = 30.8203
-	const south = 38.6769
-	const east = 33.8558
-	const north = 40.7537
+	const west = 30.8203;
+	const south = 38.6769;
+	const east = 33.8558;
+	const north = 40.7537;
 	const center = [39.9334, 32.8597];
 
-	// Initializes map
-	const map = L.map('map', {
-    		maxZoom: 18,
-    		minZoom: 8,
-    		maxBoundsViscosity: 1.0
-	});
-	// Sets initial coordinates and zoom level
-	map.setView(center, 13);
-	
-	const bounds = L.latLngBounds(
-		L.latLng(south, west),
-		L.latLng(north, east)
-	);
-	
-	map.setMaxBounds(bounds);
+	mapboxgl.accessToken = 'pk.eyJ1IjoiaG9ycGVhenkiLCJhIjoiY2xmNjFuOGJyMWk0bzN2cjBzZno0NXNmdCJ9.aEgc6K_vrA2mctaeIFzBrg';
 
-	// Sets map data source and associates with map
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    		attribution: '© OpenStreetMap'
-	}).addTo(map); 
+        // Create a new Mapbox map
+        const map = new mapboxgl.Map({
+            container: 'map',
+            projection: 'globe',
+            pitch: 60,
+            bearing: -60,
+            style: 'mapbox://styles/horpeazy/clf7ms36k001c01qoerxs6zdt',
+            center: [32.8597, 39.9334],
+            zoom: 15,
+        });
 
+        // Add a marker to the map
+        let marker = new mapboxgl.Marker()
+            .setLngLat([32.8597, 39.9334])
+            .addTo(map);
+
+        // When the marker is clicked, show the Street View panorama
+        marker.getElement().addEventListener('click', function() {
+            const panorama = new mapboxgl.Popup({
+                closeButton: true,
+                closeOnClick: false,
+                anchor: 'top-left',
+                offset: [0, 0]
+            });
+
+            panorama.setDOMContent(document.getElementById('panorama'));
+
+            const panoramaOptions = {
+                position: {
+                    lat: startLat, 
+                    lng: startLon
+                },
+                pov: {
+                    heading: 0,
+                    pitch: 0
+                }
+            };
+
+            // Create a new Street View panorama
+            const streetView = new mapboxgl.StreetViewPanorama(panoramaOptions);
+
+            // Add the Street View panorama to the map
+            map.addControl(streetView);
+
+            // Open the Street View panorama in the popup
+            panorama.setLngLat(marker.getLngLat()).addTo(map);
+        });
+        
+        map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+        
+        
+        // Direction Form
+	const directions = new MapboxDirections({
+        	accessToken: mapboxgl.accessToken
+    	})
+   
+    
+
+	function direction_reset() {
+    		directions.actions.clearOrigin()
+    		directions.actions.clearDestination()
+    		directions.container.querySelector('input').value = ''
+	}
+	$(function() {
+    		$('#get-direction').click(function() {
+        		// Adding Direction form and instructions on map
+        		map.addControl(directions, 'top-left');
+        		directions.container.setAttribute('id', 'direction-container')
+        		$(geocoder.container).hide()
+        		$(this).hide()
+        		$('#end-direction').removeClass('d-none')
+        		$('.marker').remove()
+    		})
+    		$('#end-direction').click(function() {
+        		direction_reset()
+        		$(this).addClass('d-none')
+        		$('#get-direction').show()
+        		$(geocoder.container).show()
+        		map.removeControl(directions)
+    		})
+	})
 
 	function drawRoute(startLat, startLon, endLat, endLon) {
-		const routeUrl = 'https://router.project-osrm.org/route/v1/driving/';		
-		fetch(routeUrl + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
+		const routeUrl = "https://api.mapbox.com/directions/v5/mapbox/driving";
+		const options = "geometries=geojson&overview=full";
+		fetch(`${routeUrl}/${startLon},${startLat};${endLon},${endLat}?${options}&access_token=${mapboxgl.accessToken}`)
 		.then(function (response) {
-			return response.json();
-		})
-		.then(function (json) {
-			// Parse the response and create a LatLng array for the route
-			const route = json.routes[0];
-			const lineString = route.geometry;
-			let latLngs = [];
-			currentRoute = []
-			for (var i = 0; i < lineString.coordinates.length; i++) {
-					latLngs.push(L.latLng(lineString.coordinates[i][1], lineString.coordinates[i][0]));
-					currentRoute.push([lineString.coordinates[i][1], lineString.coordinates[i][0]]);
-			}
+    			if (!response.ok) {
+      				throw new Error(`HTTP error! status: ${response}`);
+    			}
+    			return response.json();
+  		})
+  		.then(function (json) {
+    			// Check if the response contains a valid route object
+    			if (!json.routes || json.routes.length === 0) {
+      				throw new Error('No route found.');
+    			}
 
-			// Add the route to the map
-			if (marker) {
-			map.removeLayer(marker);
-				map.removeLayer(circle);
-			}
-			
-			if (dMarker) {
-				map.removeLayer(dMarker);
-			}
-			
-			if (polyline) {
-				map.removeLayer(polyline);
-			}
-			
-			// Add new markers and circle
-			marker = L.marker([startLat, startLon]).addTo(map);
-			circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
-			dMarker = L.marker([endLat, endLon]).addTo(map);
-			polyline = L.polyline(latLngs, {color: 'red'}).addTo(map);
+    			// Get the first route from the response
+    			const route = json.routes[0];
+
+    			// Create a GeoJSON object from the route geometry
+    			const routeGeoJSON = {
+      				type: 'Feature',
+      				properties: {},
+      				geometry: route.geometry,
+    			};
+
+    			// Add the route layer to the map
+    			map.removeLayer('route');
+    			map.addLayer({
+      				id: 'route',
+      				type: 'line',
+      				source: {
+        				type: 'geojson',
+        				data: routeGeoJSON,
+      				},
+      				layout: {
+        				'line-join': 'round',
+        				'line-cap': 'round',
+      				},
+      				paint: {
+        				'line-color': 'red',
+        				'line-width': 4,
+      				},
+    			});
+    
+    			const dMarker = new mapboxgl.Marker()
+    				.setLngLat([endLon, endLat])
+    				.addTo(map);
+    
+    			// Extract the coordinates of the route geometry
+			//const coordinates = route.geometry.coordinates;
+
+			// Convert the coordinates to a list of lists
+			//const routeList = coordinates.map(coord => [coord[0], coord[1]]);
+
+    			// Fit the map view to the route bounds
+    			const bounds = new mapboxgl.LngLatBounds();
+    			routeGeoJSON.geometry.coordinates.forEach((coord) => bounds.extend(coord));
+    			map.fitBounds(bounds, { padding: 50 });
 			
 			// Insert the find match button
 			const matchEl = document.querySelector(".match");
 			matchEl.innerHTML = `<button class="match-btn">Find Match</button>`
 			const matchBtn = document.querySelector(".match-btn");
 			matchBtn.addEventListener("click", (e) => {
+				routeUrl = "https://router.project-osrm.org/route/v1/driving/";
 				matchBtn.innerHTML = `<div class='spinner'></div>`
 				fetch(routeUrl + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson')
 				.then(function (response) {
@@ -105,7 +236,7 @@
 					const lineString = route.geometry;
 					currentRoute = [];
 					for (var i = 0; i < lineString.coordinates.length; i++) {
-							currentRoute.push([lineString.coordinates[i][1], lineString.coordinates[i][0]]);
+						currentRoute.push([lineString.coordinates[i][1], lineString.coordinates[i][0]]);
 					}
 					fetch("/match/driver/", {
 						method: "POST",
@@ -137,50 +268,53 @@
 							resultEl.innerHTML = "<div>No match found!</div>";
 							resultEl.innerHTML += `<div class="end-ride-wrapper"  style="width: 100%;
 										display: flex; justify-content: flex-end; margin-top: 50px;">
-									<a href="/end-trip/${id}" class="end-ride-btn" 
-									style="min-width:150px; padding: 10px; 
-									background-color: red; border: none; color: white; 
-									font-size: 16px; cursor: pointer; font-weight: bold; 
-									border-radius: 8px; text-align: center;">End Ride</a>
-									</div>`
+											<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px; padding: 10px; 
+											background-color: red; border: none; color: white; 
+											font-size: 16px; cursor: pointer; font-weight: bold; 
+											border-radius: 8px; text-align: center;">
+												End Ride
+											</a>
+										</div>`;
 							matchBtn.style.display = 'none';
 							return;
 						}
 					
 						for (let i = 0; i < data.length; i++) {
 							resultEl.innerHTML += `<div class="match-wrapper">
-										<div><span>Username: </span>${data[i].username}</div>
-										<div><span>Destination:</span> ${data[i].destination} </div>
-										<div><span>Origin: </span>${data[i].origin} </div>
-										<div><span>Match rate:</span> ${data[i].match_rate}%</div>
-										<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-										<a href="/match/driver/?trip_id=${id}&match_id=${data[i].id}"
-											style="min-width:150px; padding: 5px; background-color: green;
-											border: none; color: white; font-size: 14px; cursor: pointer;
-											font-weight: bold; border-radius: 4px; text-align: center;">
-										Request ride</a>
-										</div>
-									</div>`
+											<div><span>Username: </span>${data[i].username}</div>
+											<div><span>Destination:</span> ${data[i].destination} </div>
+											<div><span>Origin: </span>${data[i].origin} </div>
+											<div><span>Match rate:</span> ${data[i].match_rate}%</div>
+											<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
+												<div>
+												<a href="/profile/${data[i].user_id}" class="acc-btn">
+													View Profile
+												</a>
+												<a href="/match/driver/?trip_id=${id}&match_id=${data[i].id}" class="acc-btn">
+													Request ride
+												</a>
+												</div>
+											</div>
+										</div>`;
 						}
 						matchBtn.style.display = 'none';
 						resultEl.innerHTML += `<div class="end-ride-wrapper" style="width: 100%; display: flex;
-										justify-content: flex-end; margin-top: 50px;">
-									<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px;
+									justify-content: flex-end; margin-top: 50px;">
+										<a href="/end-trip/${id}" class="end-ride-btn" style="min-width:150px;
 										padding: 10px; background-color: red; border: none; color: white;
-										font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px;
-										text-align: center;">
-									End Ride
-									</a>
-									</div>`
+										font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">
+											End Ride
+										</a>
+									</div>`;
 					})
 					.catch(error => {
 						console.log(error);
 						matchBtn.innerHTML = `Find Match`;
-					})
-				})
-        		})
+					});
+				});
+        		});
         			
-    		})
+    		});
 	}
 	
 	function distance(lat1, lon1, lat2, lon2) {
@@ -201,53 +335,41 @@
 	navigator.geolocation.watchPosition(success, error, { enabledHighAccuracy: true });
 
 	function success(pos) {
+  		startLat = pos.coords.latitude;
+  		startLon = pos.coords.longitude;
+  		const accuracy = pos.coords.accuracy;
+		const placesUrl = "https://api.mapbox.com/geocoding/v5/mapbox.places";
+  		const geocodeUrl = `${placesUrl}/${startLon},${startLat}.json?access_token=${mapboxgl.accessToken}`;
+  
+  		fetch(geocodeUrl)
+    		.then(response => {
+      			if (!response.ok) {
+        			throw new Error("Network error: could not fetch current location");
+      			}
+      			return response.json();
+    		})
+    		.then(data => {
+      			const current_location = data.features[0].place_name;
+      			// Remove existing marker and circle
+      			if (marker) {
+        			marker.remove();
+      			}
+      			if (dMarker) {
+        			dMarker.remove();
+      			}
+      			marker = new mapboxgl.Marker().setLngLat([startLon, startLat]).addTo(map);
 
-		startLat = pos.coords.latitude;
-		startLon = pos.coords.longitude;
-		accuracy = pos.coords.accuracy;
-		
-		const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${startLat}&lon=${startLon}`
-		
-		fetch(url)
-		.then(res => {
-			if (res.status == 200) {
-				return res.json()
-			}
-			throw new Error;
-		})
-		.then(data => {
-			current_location = data.display_name;
-		})
-		.catch(error => {
-			console.log(error);
-		})
-		
-		// Remove existing marker and circle
-		if (marker) {
-			map.removeLayer(marker);
-        		map.removeLayer(circle);
-    		}
-    		
-    		if (dMarker) {
-    			map.removeLayer(dMarker);
-    		}
+      			map.setCenter([startLon, startLat]);
 
-
-    		marker = L.marker([startLat, startLon]).addTo(map);
-    		circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
-
-    		if (!zoomed) {
-        		zoomed = map.fitBounds(circle.getBounds()); 
-    		}
-
-    		map.setView([startLat, startLon]);
-    
-		
-		if (endLon && endLat) {
-			drawRoute(startLat, startLon, endLat, endLon)
-		}
-		
+      			if (endLon && endLat) {
+        			drawRoute(startLat, startLon, endLat, endLon);
+      			}
+    		})
+    		.catch(error => {
+      			console.error("Error:", error);
+    		});
 	}
+
 	
 	function error(err) {
     		if (err.code === 1) {
@@ -260,7 +382,7 @@
 
 	searchInput.addEventListener("focus", ()=> {
 		locations.style.display = "block";
-		locations.innerHTML = "";
+		//locations.innerHTML = "";
 	})
 	
 	searchInput.addEventListener("blur", (e)=> {
@@ -280,7 +402,13 @@
       				let locationsContent = "";
       				for (let i = 0; i < data.length; i++) {
       					d = distance(startLat, startLon, data[i].lat, data[i].lon);
-      					locationsContent  += `<li class="location" data-lat=${data[i].lat} data-lon=${data[i].lon} data-dest='${data[i].display_name}'><span class="l-span"><i class="fas fa-map-marker-alt icon"></i><span class="dist">${d.toFixed(2)}km</span></span>${data[i].display_name}</li>`
+      					locationsContent  += `<li class="location" data-lat=${data[i].lat} data-lon=${data[i].lon} data-dest='${data[i].display_name}'>
+      									<span class="l-span">
+      										<i class="fas fa-map-marker-alt icon"></i>
+      										<span class="dist">${d.toFixed(2)}km</span>
+      									</span>
+      									${data[i].display_name}
+      							     </li>`;
       				}
       				if (locationsContent !== "") {
       					locations.innerHTML = locationsContent;
@@ -288,18 +416,18 @@
       				const locationItems = document.querySelectorAll(".location");
       				locationItems.forEach(item => {
 					item.addEventListener('click', (e) => {
-					endLon = e.target.getAttribute("data-lon");
-					endLat = e.target.getAttribute("data-lat");
-					currentDest = e.target.getAttribute("data-dest");
-					locations.style.display = "none";
-					searchInput.value = currentDest;
-					drawRoute(startLat, startLon, endLat, endLon);
-				})
-	})
+						endLon = e.target.getAttribute("data-lon");
+						endLat = e.target.getAttribute("data-lat");
+						currentDest = e.target.getAttribute("data-dest");
+						locations.style.display = "none";
+						searchInput.value = currentDest;
+						drawRoute(startLat, startLon, endLat, endLon);
+					});
+				});
     			})
     			.catch(error => console.log(error));
 		}
-	})
+	});
 	
 </script>
 

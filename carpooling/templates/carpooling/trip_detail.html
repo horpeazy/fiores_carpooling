@@ -2,11 +2,130 @@
 {% block head %}
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
 	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+	
+	<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js" defer></script>
+	<script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter@2.0.2/dist/wallet-adapter.umd.js"></script>
+	<script src='https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js'></script>
+    	<link href='https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css' rel='stylesheet' />
+    	
+    	<!-- Direction API -->
+        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
+        <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css">
+        
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer"
+    />
+	<script src="/static/js/review.js" defer></script>
     	<style>
     		p span {
     			display: inline-block;
     			width: 120px;
     		}
+    		
+    		.review-wrapper, .l-review-wrapper{
+    			width: 100vw;
+			height: 100vh;
+			display: none;
+			justify-content: center;
+			align-items: center;
+			position: fixed;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			z-index: 99999;
+			background: rgba(0, 0, 0, 0.3);
+		}
+		
+		.review , .l-review {
+			width: 80vw;
+			max-width: 500px;
+			height: 80vh;
+			background: white;
+			box-shadow: 8px 10px 20px 0 rgb(46 61 73 / 15%);
+			padding: 1rem;
+			overflow: hidden;
+		}
+		
+		.close-review, .l-close-review {
+			cursor: pointer;
+			display: block;
+			float: right;
+			margin-bottom: 20px;
+			height: 35px;
+			width: 35px;
+			border: none;
+			background-color: white;
+			border-radius: 50%;
+		}
+		
+		.close-review:hover, .l-close-review:hover {
+			background-color: rgba(0, 0, 0, 0.1);
+		}
+		
+		form {
+			padding: 1rem 3rem;
+			margin-top: 2rem;
+		}
+		
+		form h2 {
+			font-weight: bold; 
+			text-align: center; 
+			padding: 20px;
+		}
+		
+		textarea {
+			height: 250px;
+			width: 100%;
+			padding: 10px;
+		}
+		
+		.review-btn, .c-review-btn {
+			float: right; 
+			width: auto;
+			padding: 0 1rem;
+		}
+		
+		.end-ride-btn, .end-ride-btn-a {
+			color: white;
+		}
+		
+		.end-ride-wrapper {
+			width: 100%; 
+			display: flex; 
+			justify-content: flex-end; 
+			margin-top: 50px;
+		}
+		
+		.a-match-btn {
+			min-width:150px; 
+			padding: 5px; 
+			background-color: green; 
+			border: none; 
+			color: white; 
+			font-size: 14px; 
+			cursor: pointer; 
+			font-weight: bold; 
+			border-radius: 4px; 
+			text-align: center;
+		}
+		
+		.a-match-btn-wrapper {
+			width: 100%; 
+			display: flex;
+			justify-content: flex-end; 
+			margin-top: 5px;
+		}
+		
+		.l-review-btn {
+			background: blue;
+			color: white;
+			width: auto;
+			padding: 10px;
+			border-radius: 5px;
+			padding: 8px; 
+			margin: 0;
+		}
     	</style>
 {% endblock %}
 {% block content %}
@@ -52,8 +171,8 @@
 				<p>Username: {{ match.user.username }} </p>
 				</div>
 				<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-					<a href="/accept-trip?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Accept ride</a>
-					</div>
+					<a href="/accept-trip?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn">Accept ride</a>
+				</div>
 			</div>	
 		{% endfor %}
 	{% endif %}
@@ -74,6 +193,9 @@
 							</div>
 						</div>
 					</div>
+					<div class="end-ride-wrapper">
+						<a href="#" class="end-ride-btn" >End Ride</a>
+					</div>
 				{% else %}
 					<h2>Available Drivers</h2>
 					{% if context.matches %}
@@ -84,8 +206,8 @@
 									<p>From: {{ match.origin }} </p> 
 									<p>Username: {{ match.user.username }} </p>
 									<p>Match rate: {{ match.match_rate }}</p>
-									<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-											<a href="/match/driver/?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Request ride</a>
+									<div style="" class="a-match-btn-wrapper">
+										<a href="/match/driver/?ride_id={{ context.trip.id }}&match_id={{ match.id }} " class="a-match-btn">Request ride</a>
 											</div>
 								</div>
 							</div>
@@ -93,10 +215,10 @@
 					{% else %}
 						<p>Sorry, no driver available yet.</p>
 					{% endif %}
+					<div class="end-ride-wrapper">
+						<a href="/end-ride" class="end-ride-btn-a" >End Ride</a>
+					</div>
 				{% endif %}
-				<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
-											<a href="/end-trip/{{ context.trip.id  }}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
-										</div>
 			{% else %}
 				{% if context.trip.driver %}
 					<h2>Matched Driver</h2>
@@ -125,6 +247,9 @@
 									<p>Username: {{ match.user.username }} </p>
 									<p>Status: {{ match.status }} </p>
 								</div>
+								<div class="end-ride-wrapper" style="margin: 0">
+									<a href="#" class="l-review-btn" data-id="{{ match.user.id }}" data-trip="{{ context.trip.id }}">Leave Review</a>
+								</div>
 							</div>
 						{% endfor %}
 					</div>
@@ -139,7 +264,7 @@
 									<p>Username: {{ match.user.username }} </p>
 									<p>Match rate: {{ match.match_rate }}</p>
 									<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
-											<a href="/match/passenger/?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn" style="min-width:150px; padding: 5px; background-color: green; border: none; color: white; font-size: 14px; cursor: pointer; font-weight: bold; border-radius: 4px; text-align: center;">Offer ride</a>
+											<a href="/match/passenger/?ride_id={{ context.trip.id }}&match_id={{ match.id }} "class="a-match-btn">Offer ride</a>
 											</div>
 								</div>
 							</div>
@@ -147,9 +272,9 @@
 					{% else %}
 						<p>Sorry, no passenger available yet.</p>
 					{% endif %}
-				<div class="end-ride-wrapper"  style="width: 100%; display: flex; justify-content: flex-end; margin-top: 50px;">
-											<a href="/end-trip/{{ context.trip.id  }}" class="end-ride-btn" style="min-width:150px; padding: 10px; background-color: red; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 8px; text-align: center;">End Ride</a>
-										</div>
+				<div class="end-ride-wrapper" >
+					<a href="/end-ride" class="end-ride-btn-a">End Ride</a>
+				</div>
 			{% else %}
 				<h2>Matched Passengers</h2>
 				{% if context.trip.passengers %}
@@ -173,6 +298,33 @@
 	</div>
 </div>
 
+<div class="review-wrapper">	
+	<div class="review">
+		<button class="close-review">X</button>
+		<form method="post" action="/end-trip/">
+			{% csrf_token %}
+			<h2>Leave a review</h2>	
+			<input hidden value="{{ context.trip.id }}" name="trip_id"></input>
+			{% if context.trip.role == "passenger" %}
+				<input hidden value="{{ context.trip.driver.user.id }}" name="user_id"></input>
+			{% endif %}
+			<textarea placeholder="Enter review here (optional)" name="review"></textarea>
+			<button class="review-btn">Submit</button>
+		</form>
+	</div>	
+</div>
+
+<div class="l-review-wrapper">	
+	<div class="l-review">
+		<button class="l-close-review">X</button>
+		<form>
+			<h2>Leave a review</h2>
+			<textarea placeholder="Enter review here (optional)" name="review" class="review-text"></textarea>
+			<button class="c-review-btn">Submit Review</button>
+		</form>
+	</div>	
+</div> 
+
 <script>
 	let marker, circle, dMarker, zoomed;
 	let currenRroute, currentDest, current_location;
@@ -187,47 +339,150 @@
 	const north = 40.7537
 	const center = [39.9334, 32.8597];
 
-	// Initializes map
-	const map = L.map('map', {
-    		maxZoom: 18,
-    		minZoom: 8,
-    		maxBoundsViscosity: 1.0
-	});
-	// Sets initial coordinates and zoom level
-	map.setView(center, 13);
-	
-	const bounds = L.latLngBounds(
-		L.latLng(south, west),
-		L.latLng(north, east)
-	);
-	
-	map.setMaxBounds(bounds);
+	mapboxgl.accessToken = 'pk.eyJ1IjoiaG9ycGVhenkiLCJhIjoiY2xmNjFuOGJyMWk0bzN2cjBzZno0NXNmdCJ9.aEgc6K_vrA2mctaeIFzBrg';
 
-	// Sets map data source and associates with map
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    		attribution: '© OpenStreetMap'
-	}).addTo(map);
+        // Create a new Mapbox map
+        const map = new mapboxgl.Map({
+            container: 'map',
+            projection: 'globe',
+            pitch: 60,
+            bearing: -60,
+            style: 'mapbox://styles/horpeazy/clf7ms36k001c01qoerxs6zdt',
+            center: center,
+            zoom: 13,
+            zoomControl: true
+        });
+
+        // Add a marker to the map
+        let marker = new mapboxgl.Marker()
+            .setLngLat([5.6258, 6.3382])
+            .addTo(map);
+
+        // When the marker is clicked, show the Street View panorama
+        marker.getElement().addEventListener('click', function() {
+            const panorama = new mapboxgl.Popup({
+                closeButton: true,
+                closeOnClick: false,
+                anchor: 'top-left',
+                offset: [0, 0]
+            });
+
+            panorama.setDOMContent(document.getElementById('panorama'));
+
+            const panoramaOptions = {
+                position: {
+                    lat: startLat, 
+                    lng: startLon
+                },
+                pov: {
+                    heading: 0,
+                    pitch: 0
+                }
+            };
+
+            // Create a new Street View panorama
+            const streetView = new mapboxgl.StreetViewPanorama(panoramaOptions);
+
+            // Add the Street View panorama to the map
+            map.addControl(streetView);
+
+            // Open the Street View panorama in the popup
+            panorama.setLngLat(marker.getLngLat()).addTo(map);
+        });
+        
+        map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+        
+        
+        // Direction Form
+	const directions = new MapboxDirections({
+        	accessToken: mapboxgl.accessToken
+    	})
+   
+    
+
+	function direction_reset() {
+    		directions.actions.clearOrigin()
+    		directions.actions.clearDestination()
+    		directions.container.querySelector('input').value = ''
+	}
+	$(function() {
+    		$('#get-direction').click(function() {
+        		// Adding Direction form and instructions on map
+        		map.addControl(directions, 'top-left');
+        		directions.container.setAttribute('id', 'direction-container')
+        		$(geocoder.container).hide()
+        		$(this).hide()
+        		$('#end-direction').removeClass('d-none')
+        		$('.marker').remove()
+    		})
+    		$('#end-direction').click(function() {
+        		direction_reset()
+        		$(this).addClass('d-none')
+        		$('#get-direction').show()
+        		$(geocoder.container).show()
+        		map.removeControl(directions)
+    		})
+	})
 
 	// Declare function to draw map
 	function drawRoute(startLat, startLon, endLat, endLon) {
-		fetch('https://router.project-osrm.org/route/v1/driving/' + startLon + ',' + startLat + ';' + endLon + ',' + endLat + '?geometries=geojson&steps=true&overview=full')
-    		.then(function (response) {
-        		return response.json();
-    		})
-    		.then(function (json) {
-        		// Parse the response and create a LatLng array for the route
-        		const route = json.routes[0];
-        		const lineString = route.geometry;
-        		let latLngs = [];
-        		currentRoute = []
-        		for (var i = 0; i < lineString.coordinates.length; i++) {
-            			latLngs.push(L.latLng(lineString.coordinates[i][1], lineString.coordinates[i][0]));
-        		}	
-    				
-    			// Add new markers and circle
-    			dMarker = L.marker([endLat, endLon]).addTo(map);
-        		// Add the route to the map
-        		polyline = L.polyline(latLngs, {color: 'red'}).addTo(map);
+		const routeUrl = "https://api.mapbox.com/directions/v5/mapbox/driving";
+		const options = "geometries=geojson&overview=full";
+		fetch(`${routeUrl}/${startLon},${startLat};${endLon},${endLat}?${options}&access_token=${mapboxgl.accessToken}`)
+		.then(function (response) {
+    			if (!response.ok) {
+      				throw new Error(`HTTP error! status: ${response.status}`);
+    			}
+    			return response.json();
+  		})
+  		.then(function (json) {
+    			// Check if the response contains a valid route object
+    			if (!json.routes || json.routes.length === 0) {
+      				throw new Error('No route found.');
+    			}
+
+    			// Get the first route from the response
+    			const route = json.routes[0];
+
+    			// Create a GeoJSON object from the route geometry
+    			const routeGeoJSON = {
+      				type: 'Feature',
+      				properties: {},
+      				geometry: route.geometry,
+    			};
+
+    			// Add the route layer to the map
+    			map.addLayer({
+      				id: 'route',
+      				type: 'line',
+      				source: {
+        				type: 'geojson',
+        				data: routeGeoJSON,
+      				},
+      				layout: {
+        				'line-join': 'round',
+        				'line-cap': 'round',
+      				},
+      				paint: {
+        				'line-color': 'red',
+        				'line-width': 4,
+      				},
+    			});
+    
+    			dMarker = new mapboxgl.Marker()
+    				.setLngLat([endLon, endLat])
+    				.addTo(map);
+    
+    			// Extract the coordinates of the route geometry
+			//const coordinates = route.geometry.coordinates;
+
+			// Convert the coordinates to a list of lists
+			//const routeList = coordinates.map(coord => [coord[0], coord[1]]);
+
+    			// Fit the map view to the route bounds
+    			const bounds = new mapboxgl.LngLatBounds();
+    			routeGeoJSON.geometry.coordinates.forEach((coord) => bounds.extend(coord));
+    			map.fitBounds(bounds, { padding: 50 });
     		})
     		.catch(error => {
     			console.log(error);
@@ -238,31 +493,39 @@
 		navigator.geolocation.watchPosition(success, error);
 
 		function success(pos) {
-
-			const startLat = pos.coords.latitude;
-			const startLon = pos.coords.longitude;
-			const accuracy = pos.coords.accuracy;
-			
-			// Remove existing marker and circle
-			if (marker) {
-				map.removeLayer(marker);
-	        		map.removeLayer(circle);
-	    		}
-	    		
-	    		if (dMarker) {
-	    			map.removeLayer(dMarker);
-	    		}
+  			startLat = pos.coords.latitude;
+  			startLon = pos.coords.longitude;
+  			const accuracy = pos.coords.accuracy;
+			const placesUrl = "https://api.mapbox.com/geocoding/v5/mapbox.places";
+  			const geocodeUrl = `${placesUrl}/${startLon},${startLat}.json?access_token=${mapboxgl.accessToken}`;
+  
+  			fetch(geocodeUrl)
+    			.then(response => {
+      				if (!response.ok) {
+        				throw new Error("Network error: could not fetch current location");
+      				}
+      				return response.json();
+    			})
+    			.then(data => {
+      				const current_location = data.features[0].place_name;
+      				// Remove existing marker and circle
+      				if (marker) {
+        				marker.remove();
+      				}
+      				if (dMarker) {
+        				dMarker.remove();
+      				}
+      				marker = new mapboxgl.Marker().setLngLat([startLon, startLat]).addTo(map);
 	
+      				map.setCenter([startLon, startLat]);
 	
-	    		marker = L.marker([startLat, startLon]).addTo(map);
-	    		circle = L.circle([startLat, startLon], { radius: accuracy }).addTo(map);
-	
-	    		if (!zoomed) {
-	        		zoomed = map.fitBounds(circle.getBounds()); 
-	    		}
-	
-	    		map.setView([startLat, startLon]);
-			drawRoute(startLat, startLon, endLat, endLon);
+      				if (endLon && endLat) {
+        				drawRoute(startLat, startLon, endLat, endLon);
+      				}
+    			})
+    			.catch(error => {
+      				console.error("Error:", error);
+    			});
 		}
 		
 		function error(err) {

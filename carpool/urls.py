@@ -19,7 +19,9 @@ from carpooling.views import ( home_view, SignUpView,
 			       join_pool, match_driver, 
 			       match_passenger, trips, 
 			       create_pool, trip_detail,
-			       end_trip, accept_trip
+			       end_trip, accept_trip,
+			       account, reviews,
+			       create_review, profile
 			     )
 
 urlpatterns = [
@@ -33,6 +35,10 @@ urlpatterns = [
     path("match/passenger/", match_passenger, name="match_passenger"),
     path("trips/", trips, name="trips"),
     path("trips/<int:trip_id>/", trip_detail, name="trip_detail"),
-    path("end-trip/<int:trip_id>/", end_trip, name="end_trip"),
+    path("end-trip/", end_trip, name="end_trip"),
     path("accept-trip/", accept_trip, name="accept_trip"),
+    path("account/", account, name="account"),
+    path("profile/<int:user_id>", profile, name="profile"),
+    path("reviews/", reviews, name="reviews"),
+    path("create-review/", create_review, name="create_review")
 ]

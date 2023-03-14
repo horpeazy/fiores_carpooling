@@ -369,6 +369,7 @@ form button {
   animation: spin 1s ease-in-out infinite;
 }
 
+
 .end-ride-wrapper {
 	width: 100%;
 	display: flex;
@@ -376,12 +377,12 @@ form button {
 	margin-top: 50px;
 }
 
-.end-ride-btn {
+.end-ride-btn, .end-ride-btn-a {
         min-width: 150px;
 	padding: 10px;
 	background-color: red;
 	border: none;
-	color: black;
+	color: white;
 	font-size: 16px;
 	cursor: pointer;
 	font-weight: bold;

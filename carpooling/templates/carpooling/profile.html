@@ -1,0 +1,134 @@
+{% extends "carpooling/main.html" %}
+{% block head %}
+	<style>
+		.profile-wrapper {
+			display: flex;
+			justify-content: space-between;
+			padding: 4rem;
+			padding-bottom: 100px;
+		}
+		
+		.profile-nav {
+			flex-basis: 30%;
+			display: flex;
+			justify-content: center;
+			padding-top: 40px;
+		}
+		
+		.profile-info {
+			flex-basis: 70%;
+			padding-top: 40px;
+			padding-left: 40px;
+		}
+		
+		.info-name {
+			width: 170px;
+			font-weight: bold;
+		}
+		
+		.profile-nav-wrapper {
+			text-align: center; 
+			height: 280px; 
+			width: 280px; 
+			padding: 20px;
+			box-shadow: 0px 7px 16px 0px rgb(0 0 0 / 29%);
+			border-radius: 20px
+		}
+		
+		.about {
+			border-bottom: 1px solid grey; 
+			padding-bottom: 5px; 
+			margin: 20px 0 40px; 
+			font-weight: bold;
+		}
+		
+		.info-header {
+			display: flex; 
+			margin-top: 40px; 
+			justify-content: space-between; 
+			width: 500px;
+		}
+		
+		.send-message {
+			padding: 15px;
+			background: rgba(0, 0, 0, 0.3);
+			width: 140px;
+			border: none;
+			font-size: 16px;
+			margin: 0;
+			cursor: pointer;
+			margin-top: 20px;
+		}
+	</style>
+{% endblock %}
+{% block content %}
+
+
+	<div class="profile-wrapper">
+		<div class="profile-nav">
+			<div class="profile-nav-wrapper">
+				<img src="/static/images/baran.png" style="width: 150px; height: 150px;" alt="profile-photo">
+				<h2 style="font-weight: bold;">{{ context.user.username }}</h2>
+				<a href="/reviews/?user_id={{ context.user.id }}">Reviews</a>
+			</div>
+			
+		</div>
+		<div class="profile-info">
+			<div style="display: flex; justify-content: space-between; width: 500px;">
+				<h2>{{ context.user.username }} </h2>
+			</div>
+			<p style="color: blue;">Software Engineer</p>
+			<h3 style="margin-top: 20px;">RATING </h3>
+			<p>
+			   <span >5.0</span>  
+			   <span><i class="fa fa-star fa-solid"></i></span>
+			   <span><i class="fa fa-star fa-solid"></i></span> 
+			   <span><i class="fa fa-star fa-solid"></i></span> 
+			   <span><i class="fa fa-star fa-solid"></i></span> 
+			   <span><i class="fa fa-star fa-regular"></i></span>
+			  </p>
+			<div>
+				<button class="send-message">Send Message</button>
+			</div>
+			<div class="about">About</div>
+			<div class="info-header">
+				<h3>CONTACT INFORMATION</h3>
+			</div>
+			<table>
+				<tr>
+					<td class="info-name">Phone:</td>
+					<td>+1 982 2382 232</td>
+				</tr>
+				<tr>
+					<td class="info-name">Email Address:</td>
+					<td>carpool@fiores.com </td>
+				</tr>
+			</table>
+			<div class="info-header" >
+				<h3>VEHICLE INFORMATION</h3>
+			</div>
+			<table>
+				<tr>
+					<td class="info-name">Make:</td>
+					<td>Lexus</td>
+				</tr>
+				<tr>
+					<td class="info-name">Model:</td>
+					<td>RX 350  </td>
+				</tr>
+				<tr>
+					<td class="info-name">Color:</td>
+					<td>White</td>
+				</tr>
+				<tr>
+					<td class="info-name">Plate Number:</td>
+					<td>BEN407HK</td>
+				</tr>
+				<tr>
+					<td class="info-name">Driver's License:</td>
+					<td>XDGH78392V</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+{% endblock %}

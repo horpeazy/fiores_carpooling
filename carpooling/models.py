@@ -36,3 +36,22 @@ class Trip(models.Model):
 	route = models.TextField(blank=True, null=True)
 	role = models.CharField(max_length=10, choices = ROLE_CHOICES)
 	status = models.CharField(max_length=10, choices = STATUS_CHOICES, default="pending")
+	
+
+class Review(models.Model):
+	id = models.AutoField(primary_key=True)
+	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="review_owner")
+	reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviewer")
+	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="trip")
+	review = models.TextField(blank=False, null=False)
+
+
+class Vehicle(models.Model):
+	id = models.AutoField(primary_key=True)
+	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vehicle_owner")
+	model = models.CharField(max_length=50, blank=True, null=True)
+	make = models.CharField(max_length=50, blank=False, null=False)
+	plate_number = models.CharField(max_length=50, blank=False, null=False)
+	driver_license = models.CharField(max_length=50, blank=False, null=False)
+	color = models.CharField(max_length=50, blank=False, null=False)
+	

@@ -1,9 +1,20 @@
 {% extends "carpooling/main.html" %}
+{% block head %}
+	<style>
+		.trips {
+			margin: 30px auto; 
+			border: 1px solid rgba(0, 0, 0, 0.2); 
+			padding: 15px; border-radius: 5px; 
+			box-shadow: 0px 7px 16px 0px rgb(0 0 0 / 29%);
+			max-width: 800px;
+		}
+	</style>
+{% endblock %}
 {% block content %}
 <ul class="body">
 	{% for trip in trips %}
 	
-		<li style="margin: 30px 20px; border: 1px solid rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 5px; box-shadow: 0px 7px 16px 0px rgb(0 0 0 / 29%);">
+		<li class="trips">
 			<a href="/trips/{{ trip.id }}/" style="color: black"><h2>{{ trip.destination }} </h2></a>
 			<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px;">
 				<p>From: {{ trip.origin }} </p>
