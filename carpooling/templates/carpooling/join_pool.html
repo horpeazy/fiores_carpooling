@@ -26,9 +26,9 @@
             		width: 50%;
         	}
         	
-        	.acc-btn {
+        	.acc-btn, .acc-btn-v {
 			min-width:150px; 
-			padding: 5px; 
+			padding: 10px; 
 			background-color: blue;
 			border: none; 
 			color: white; 
@@ -37,6 +37,11 @@
 			font-weight: bold; 
 			border-radius: 4px; 
 			text-align: center;
+		}
+		
+		.acc-btn {
+			background: green;
+			margin-left: 20px;
 		}
     	</style>
 {% endblock %}
@@ -81,8 +86,6 @@
         const map = new mapboxgl.Map({
             container: 'map',
             projection: 'globe',
-            pitch: 60,
-            bearing: -60,
             style: 'mapbox://styles/horpeazy/clf7ms36k001c01qoerxs6zdt',
             center: [32.8597, 39.9334],
             zoom: 15,
@@ -160,7 +163,7 @@
 	})
 
 	function drawRoute(startLat, startLon, endLat, endLon) {
-		const routeUrl = "https://api.mapbox.com/directions/v5/mapbox/driving";
+		let routeUrl = "https://api.mapbox.com/directions/v5/mapbox/driving";
 		const options = "geometries=geojson&overview=full";
 		fetch(`${routeUrl}/${startLon},${startLat};${endLon},${endLat}?${options}&access_token=${mapboxgl.accessToken}`)
 		.then(function (response) {
@@ -186,7 +189,9 @@
     			};
 
     			// Add the route layer to the map
-    			map.removeLayer('route');
+    			if (map.getLayer('route')) {
+    				map.removeLayer('route');
+    			}
     			map.addLayer({
       				id: 'route',
       				type: 'line',
@@ -287,7 +292,7 @@
 											<div><span>Match rate:</span> ${data[i].match_rate}%</div>
 											<div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 5px;">
 												<div>
-												<a href="/profile/${data[i].user_id}" class="acc-btn">
+												<a href="/profile/${data[i].user_id}" class="acc-btn-v">
 													View Profile
 												</a>
 												<a href="/match/driver/?trip_id=${id}&match_id=${data[i].id}" class="acc-btn">
@@ -340,6 +345,7 @@
   		const accuracy = pos.coords.accuracy;
 		const placesUrl = "https://api.mapbox.com/geocoding/v5/mapbox.places";
   		const geocodeUrl = `${placesUrl}/${startLon},${startLat}.json?access_token=${mapboxgl.accessToken}`;
+  		console.log("Watching position")
   
   		fetch(geocodeUrl)
     		.then(response => {
@@ -349,7 +355,7 @@
       			return response.json();
     		})
     		.then(data => {
-      			const current_location = data.features[0].place_name;
+      			current_location = data.features[0].place_name;
       			// Remove existing marker and circle
       			if (marker) {
         			marker.remove();
