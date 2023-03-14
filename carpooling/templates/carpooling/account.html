@@ -47,12 +47,16 @@
 			display: flex; 
 			margin-top: 40px; 
 			justify-content: space-between; 
-			width: 500px;
+			width: 100%;
 		}
 		
 		@media (min-width: 768px) {
 			.profile-wrapper {
 				flex-direction: row;
+			}
+			
+			.info-header {
+				width: 500px;
 			}
 		}
 	</style>
@@ -70,7 +74,7 @@
 			
 		</div>
 		<div class="profile-info">
-			<div style="display: flex; justify-content: space-between; width: 500px;">
+			<div style="display: flex; justify-content: space-between;">
 				<h2>{{ context.user.username }} </h2>
 			</div>
 			<p style="color: blue;">Software Engineer</p>
