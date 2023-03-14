@@ -1,24 +1,59 @@
+import json
+import ast
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib import messages
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-import json
-import ast
+from django.db.models import Q
+from .forms import SignupForm
 from .models import Trip, Review, Vehicle
 from .utils import match, match_routes
 
+
+# Get current user model
+#User = get_user_model()
+
+
 # Create your views here.
 
+def signup_view(request):
+	if request.method == "POST":
+		form = SignupForm(request.POST)
+		if form.is_valid():
+			user = form.save()
+			return redirect('home_view')
+		messages.error(request, "Invalid form")
+		print(form.errors)
+	else:
+		form = SignupForm()
+	return render(request, 'registration/register.html' ,{'form': form})
 
-class SignUpView(generic.CreateView):
-	form_class = UserCreationForm
-	success_url = '/login/'
-	template_name = 'registration/register.html'
+	
+def login_view(request):
+	if request.method == "POST":
+		form = AuthenticationForm(request, data=request.POST)
+		if form.is_valid():
+			username = form.cleaned_data.get("username")
+			password = form.cleaned_data.get("password")
+			user = authenticate(request, username=username, password=password)
+			if user is not None:
+				login(request, user)
+				return redirect("home_view")
+			else:
+				messages.error(request, "Invalid username or password")
+	else:
+		form = AuthenticationForm()
+	return render(request, "registration/login.html", {"form": form})
 
+
+def logout_view(request):
+	logout(request)
+	return redirect('login_view')
 
 @login_required
 def home_view(request):

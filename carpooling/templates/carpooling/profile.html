@@ -67,7 +67,7 @@
 	<div class="profile-wrapper">
 		<div class="profile-nav">
 			<div class="profile-nav-wrapper">
-				<img src="/static/images/baran.png" style="width: 150px; height: 150px; border-radius: 50%;" alt="profile-photo">
+				<img src="/static/images/baran.png?id=2" style="width: 150px; height: 150px; border-radius: 50%;" alt="profile-photo">
 				<h2 style="font-weight: bold;">{{ context.user.username }}</h2>
 				<a href="/reviews/?user_id={{ context.user.id }}">Reviews</a>
 			</div>
@@ -80,12 +80,12 @@
 			<p style="color: blue;">Software Engineer</p>
 			<h3 style="margin-top: 20px;">RATING </h3>
 			<p>
-			   <span >5.0</span>  
+			   <span >4.5</span> 
 			   <span><i class="fa fa-star fa-solid"></i></span>
 			   <span><i class="fa fa-star fa-solid"></i></span> 
 			   <span><i class="fa fa-star fa-solid"></i></span> 
 			   <span><i class="fa fa-star fa-solid"></i></span> 
-			   <span><i class="fa fa-star fa-regular"></i></span>
+			   <span><i class="fa fa-star-half-alt"></i></span>
 			  </p>
 			<div>
 				<button class="send-message">Send Message</button>
@@ -101,7 +101,7 @@
 				</tr>
 				<tr>
 					<td class="info-name">Email Address:</td>
-					<td>carpool@fiores.com </td>
+					<td>{{ context.user.email }} </td>
 				</tr>
 			</table>
 			<div class="info-header" >
@@ -110,23 +110,23 @@
 			<table>
 				<tr>
 					<td class="info-name">Make:</td>
-					<td>Lexus</td>
+					<td>{{ context.vehicle.make }}</td>
 				</tr>
 				<tr>
 					<td class="info-name">Model:</td>
-					<td>RX 350  </td>
+					<td>{{ context.vehicle.model }}</td>
 				</tr>
 				<tr>
 					<td class="info-name">Color:</td>
-					<td>White</td>
+					<td>{{ context.vehicle.color }}</td>
 				</tr>
 				<tr>
 					<td class="info-name">Plate Number:</td>
-					<td>BEN407HK</td>
+					<td>{{ context.vehicle.plate_number }}</td>
 				</tr>
 				<tr>
 					<td class="info-name">Driver's License:</td>
-					<td>XDGH78392V</td>
+					<td>{{ context.vehicle.driver_license }}</td>
 				</tr>
 			</table>
 		</div>

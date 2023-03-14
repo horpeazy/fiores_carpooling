@@ -15,20 +15,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from carpooling.views import ( home_view, SignUpView, 
+from carpooling.views import ( home_view, signup_view, 
 			       join_pool, match_driver, 
 			       match_passenger, trips, 
 			       create_pool, trip_detail,
 			       end_trip, accept_trip,
 			       account, reviews,
-			       create_review, profile
+			       create_review, profile,
+			       login_view, logout_view
 			     )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", home_view, name="home_view"),
-    path("", include("django.contrib.auth.urls")),
-    path("register/", SignUpView.as_view(), name='signup'),
+    path("signup/", signup_view, name='signup_view'),
+    path("logout/", logout_view, name='logout_view'),
+    path("login/", login_view, name='login_view'),
     path("join-ride/", join_pool, name="join_pool"),
     path("create-ride/", create_pool, name="create_pool"),
     path("match/driver/", match_driver, name="match_driver"),
