@@ -339,7 +339,25 @@
 	const north = 40.7537
 	const center = [39.9334, 32.8597];
 
+<<<<<<< HEAD
 	mapboxgl.accessToken = 'pk.eyJ1IjoiaG9ycGVhenkiLCJhIjoiY2xmNjFuOGJyMWk0bzN2cjBzZno0NXNmdCJ9.aEgc6K_vrA2mctaeIFzBrg';
+=======
+	// Initializes map
+	const map = L.map('map', {
+    		maxZoom: 18,
+    		// minZoom: 8,
+    		// maxBoundsViscosity: 1.0
+	});
+	// Sets initial coordinates and zoom level
+	map.setView(center, 13);
+	
+	const bounds = L.latLngBounds(
+		L.latLng(south, west),
+		L.latLng(north, east)
+	);
+	
+	// map.setMaxBounds(bounds);
+>>>>>>> e00beb188442ad9a9f972a4a28b34c2e9c60f78a
 
         // Create a new Mapbox map
         const map = new mapboxgl.Map({
