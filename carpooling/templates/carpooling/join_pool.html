@@ -189,9 +189,9 @@
     			};
 
     			// Add the route layer to the map
-    			if (map.getLayer('route')) {
-    				map.removeLayer('route');
-    			}
+    			//if (map.getLayer('route')) {
+    			//	map.removeLayer('route');
+    			//}
     			map.addLayer({
       				id: 'route',
       				type: 'line',
@@ -345,8 +345,7 @@
   		const accuracy = pos.coords.accuracy;
 		const placesUrl = "https://api.mapbox.com/geocoding/v5/mapbox.places";
   		const geocodeUrl = `${placesUrl}/${startLon},${startLat}.json?access_token=${mapboxgl.accessToken}`;
-  		console.log("Watching position")
-  
+  		console.log("In position")
   		fetch(geocodeUrl)
     		.then(response => {
       			if (!response.ok) {
@@ -366,8 +365,10 @@
       			marker = new mapboxgl.Marker().setLngLat([startLon, startLat]).addTo(map);
 
       			map.setCenter([startLon, startLat]);
+      			console.log("Centered map")
 
       			if (endLon && endLat) {
+      				console.log("Called draw route;")
         			drawRoute(startLat, startLon, endLat, endLon);
       			}
     		})
