@@ -344,10 +344,11 @@
       			}
       			marker = new mapboxgl.Marker().setLngLat([startLon, startLat]).addTo(map);
 
-      			map.setCenter([startLon, startLat]);
-
       			if (endLon && endLat) {
+      				console.log("Called draw route;")
         			drawRoute(startLat, startLon, endLat, endLon);
+      			} else {
+      				map.setCenter([startLon, startLat]);
       			}
     		})
     		.catch(error => {
