@@ -189,9 +189,9 @@
     			};
 
     			// Add the route layer to the map
-    			//if (map.getLayer('route')) {
-    			//	map.removeLayer('route');
-    			//}
+    			if (map.getLayer('route')) {
+    				map.removeLayer('route');
+    			}
     			map.addLayer({
       				id: 'route',
       				type: 'line',
@@ -207,6 +207,7 @@
         				'line-color': 'red',
         				'line-width': 4,
       				},
+      				visibility: 'visible'
     			});
     
     			const dMarker = new mapboxgl.Marker()
