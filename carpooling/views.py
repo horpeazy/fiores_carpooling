@@ -59,6 +59,9 @@ def logout_view(request):
 def home_view(request):
 	return render(request, "carpooling/index.html")
 	
+def map_view(request):
+	return render(request, "carpooling/map.html")
+	
 @login_required
 def account(request):
 	user = request.user

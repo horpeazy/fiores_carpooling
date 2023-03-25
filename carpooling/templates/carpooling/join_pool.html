@@ -189,9 +189,9 @@
     			};
 
     			// Add the route layer to the map
-    			//if (map.getLayer('route')) {
-    			//	map.removeLayer('route');
-    			//}
+    			if (map.getLayer('route')) {
+    				map.removeLayer('route');
+    			}
     			map.addLayer({
       				id: 'route',
       				type: 'line',
@@ -209,6 +209,7 @@
       				},
       				visibility: 'visible'
     			});
+    			console.log("Map drawn")
     
     			const dMarker = new mapboxgl.Marker()
     				.setLngLat([endLon, endLat])

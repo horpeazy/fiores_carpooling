@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Hacettepe Map</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+		<link rel="stylesheet" href="/style/bootstrap.min.css">
+		<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+		<script src="/static/js/script.js" defer></script>
+		<script src='https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.css' rel='stylesheet' />
+		<style>
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+			#map {
+				width: 100%;
+				height: 100vh;
+			}
+			
+			#sidebar {
+				width: 320px;
+				max-width: calc(100% - 50px);
+				height: 100vh;
+				background: rgba(0, 0, 0, 0.77);
+				color: white;
+				z-index: 999999;
+				position: absolute;
+				top: 0;
+				left: -320px;
+				padding-left: 14px;
+				padding-right: 14px;
+				padding-top: 10px;
+				-webkit-transition: all 0.5s ease-in-out;
+				-moz-transition: all 0.5s ease-in-out;
+				-o-transition: all 0.5s ease-in-out;
+				transition: all 0.5s ease-in-out;
+			}
+		
+			#sidebar.open {
+				left: 0;
+			}
+			
+			#sidebar-toggle {
+				position: absolute;
+				top: 50%;
+				left: 100%;
+				transform: translateY(-50%);
+				background-color: rgba(0, 0, 0, 0.77);
+				height: 50px;
+				width: 50px;
+				border: none;
+				cursor: pointer;
+				box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+				transition: all 0.3s ease;
+				z-index: 99999;
+				border-radius: 0 5px 5px 0;
+				box-shadow: inset 5px 0px 5px 0px rgba(0,0,0,0.25);
+				transition: all 0.5s ease-in-out;
+			}
+	
+			#sidebar-toggle i {
+				font-size: 2.3em;
+				color: white;
+				transition: all 0.3s ease;
+			}
+	
+			#sidebar-toggle.open i {
+				transform: rotate(180deg);
+			}
+		
+			#sidebar h2 {
+				font-size: 15px;
+				font-weight: bold;
+			}
+			
+			.faculties {
+				text-align: left;
+			}
+			
+			.faculty {
+				padding: 10px 0;
+				cursor: pointer;
+				font-size: 15px;
+			}
+			
+			.search {
+				height: 50px;
+				width: 100%;
+				border: 1px solid #BEBEBE;
+				padding: 13px;
+				font-size: 16px;
+				border-radius: 10px;
+				background: transparent;
+				color: white;
+				margin-bottom: 20px;
+			}
+			
+			.search:focus {
+				border: 1px solid #BEBEBE;
+				outline: none;
+			}
+			
+			.header {
+				display: flex;
+				align-items: center;
+				margin: 20px 0 40px;
+				gap: 10px;
+			}
+			
+			.sidebar img {
+				display: block;
+				background: transparent;
+			}
+			
+			.marker {
+				background-image: url('/static/images/icon.png');
+				background-size: cover;
+				background-position: center;
+				width: 40px;
+				height: 80px;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="map"></div>
+		<div id="sidebar">
+			<div class="header">
+				<img src="/static/images/logo-5.png" alt="logo" width="50px" height="50px">
+				<h2>HACETTEPE UNIVERSITY</h2>
+			</div>
+			<input type="search" name="search" class="search" placeholder="Search"/>
+			<div class="faculties"></div>
+			<button class="sidebar-toggle" id="sidebar-toggle">
+				<i class="fa fa-angle-right"></i>
+			</button>
+		</div>
+	</body>
+</html>
